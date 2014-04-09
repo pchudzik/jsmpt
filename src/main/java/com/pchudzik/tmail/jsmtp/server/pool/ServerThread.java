@@ -51,7 +51,11 @@ public class ServerThread extends Thread {
 			if(!accepted) {
 				throw new ClientRejectedException("Client not accepted by thread " + getName() + " waiting queue size " + incomingConnectionsQueue.size());
 			} else {
-				clientHandler.onNewClient(newClient);
+				try {
+					clientHandler.onNewClient(newClient);
+				} catch (Exception ex) {
+					log.warn("Client handler failed to process new client registration", ex);
+				}
 				clientSelector.wakeup();
 			}
 		} catch (InterruptedException e) {
