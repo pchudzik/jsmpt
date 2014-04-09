@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.smtp.server.nio.pool;
+package com.pchudzik.tmail.jsmtp.server.pool;
 
 import com.pchudzik.tmail.smtp.server.ClientRejectedException;
 import org.testng.annotations.AfterMethod;

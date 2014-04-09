@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.smtp.server;
+package com.pchudzik.tmail.jsmtp.server;
 
 /**
  * User: pawel

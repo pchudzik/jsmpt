@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.smtp.server.learning.nio.echo;
+package com.pchudzik.tmail.jsmtp.server.nio.echo;
 
 import com.google.common.collect.Lists;
 

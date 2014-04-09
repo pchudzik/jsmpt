@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.smtp.server.learning.nio.rfc864;
+package com.pchudzik.tmail.jsmtp.server.nio.rfc864;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;

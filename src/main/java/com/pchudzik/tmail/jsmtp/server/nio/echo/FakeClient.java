@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.smtp.server.learning.nio.echo;
+package com.pchudzik.tmail.jsmtp.server.nio.echo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
