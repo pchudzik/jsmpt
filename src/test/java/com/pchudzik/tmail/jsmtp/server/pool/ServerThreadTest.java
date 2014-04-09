@@ -1,6 +1,6 @@
 package com.pchudzik.tmail.jsmtp.server.pool;
 
-import com.pchudzik.tmail.smtp.server.ClientRejectedException;
+import com.pchudzik.tmail.jsmtp.server.ClientRejectedException;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 

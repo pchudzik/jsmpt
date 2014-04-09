@@ -2,7 +2,7 @@ package com.pchudzik.tmail.jsmtp.server.pool;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
-import com.pchudzik.tmail.smtp.server.ClientRejectedException;
+import com.pchudzik.tmail.jsmtp.server.ClientRejectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
