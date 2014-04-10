@@ -10,7 +10,7 @@ import java.nio.channels.SocketChannel;
  */
 @FunctionalInterface
 interface ClientHandler {
-	default void onNewClient(SocketChannel newClient) {}
+	default void onNewClient(SocketChannel newClient) throws ClientTransimisionException {}
 
-	void processClient(SelectionKey selectionKey);
+	void processClient(SelectionKey selectionKey) throws ClientTransimisionException;
 }

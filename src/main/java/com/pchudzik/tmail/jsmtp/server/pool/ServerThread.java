@@ -121,7 +121,7 @@ public class ServerThread extends Thread {
 			try {
 				clientHandler.processClient(selectionKey);
 			} catch (Exception ex) {
-				log.warn("Unable to process client dat", ex);
+				log.warn("Unable to process client data", ex);
 			} finally {
 				keyIterator.remove();
 			}
