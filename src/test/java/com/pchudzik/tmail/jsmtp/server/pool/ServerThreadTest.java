@@ -90,7 +90,6 @@ public class ServerThreadTest {
 			}
 		});
 
-
 		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(serverThread)) {
 			serverThread.start();
 			connectionsAcceptingServer.start();
@@ -127,8 +126,35 @@ public class ServerThreadTest {
 	}
 
 	@Test
-	public void clientHandlerExceptionOnNewClientShouldNotDestroyThread() {
+	public void clientHandlerExceptionOnNewClientShouldNotDestroyThread() throws Exception {
+		ClientHandler failingClient = new ClientHandler() {
+			@Override
+			public void onNewClient(SocketChannel newClient) {
+				throw new RuntimeException();
+			}
 
+			@Override
+			public void processClient(SelectionKey selectionKey) {
+				//nothing
+			}
+		};
+
+		serverThread = new ServerThread(
+				SelectionKey.OP_WRITE,
+				new ServerThreadConfiguration("anyName"),
+				failingClient);
+
+		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(serverThread)) {
+			serverThread.start();
+			connectionsAcceptingServer.start();
+
+			writeDataToServer(
+					connectionsAcceptingServer.getHost(),
+					connectionsAcceptingServer.getPort(),
+					"any content");
+
+			//no exception
+		}
 	}
 
 	private ClientHandler failingClientHandler() {
