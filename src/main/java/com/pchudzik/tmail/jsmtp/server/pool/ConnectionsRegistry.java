@@ -70,15 +70,12 @@ class ConnectionsRegistry extends Thread {
 
 	protected void updateClientData() {
 		final List<ClientEvent> eventsToProcess = getLatestEvents();
-		if(eventsToProcess.isEmpty()) {
-			return;
-		}
-
+		final long currentTime = timeProvider.getCurrentTime();
 		final Set<SelectionKey> newClients = Sets.newHashSet();
 		final Set<SelectionKey> brokenClients = Sets.newHashSet();
 		final Set<SelectionKey> refreshedClients = Sets.newHashSet();
 
-		clientEvents.stream()
+		eventsToProcess.stream()
 				.forEach(event -> {
 					switch (event.getClientStatus()) {
 						case NEW: newClients.add(event.getSelectionKey()); break;
@@ -87,7 +84,10 @@ class ConnectionsRegistry extends Thread {
 					}
 				});
 
-		final long currentTime = timeProvider.getCurrentTime();
+		activeClients.addAll(newClients.stream()
+				.map(selector -> new SelectionData(selector, currentTime))
+				.collect(Collectors.<SelectionData>toList()));
+
 		final Iterator<SelectionData> connectedClients = activeClients.iterator();
 		while (connectedClients.hasNext()) {
 			SelectionData data = connectedClients.next();
@@ -105,10 +105,6 @@ class ConnectionsRegistry extends Thread {
 				data.heartbeat(currentTime);
 			}
 		}
-
-		activeClients.addAll(newClients.stream()
-				.map(selector -> new SelectionData(selector, currentTime))
-				.collect(Collectors.<SelectionData>toList()));
 	}
 
 	private List<ClientEvent> getLatestEvents() {
