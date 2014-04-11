@@ -26,9 +26,8 @@ public class ConnectionsRegistryTest {
 
 	@Test
 	public void shouldRegisterNewClient() {
-		registry = new ConnectionsRegistry(timeProvider, 10, 100);
-		final SelectionKey validSelectionKey = mock(SelectionKey.class);
-		when(validSelectionKey.isValid()).thenReturn(true);
+		registry = newSimpleRegistry(10, 100);
+		final SelectionKey validSelectionKey = validSelectionKeyMock();
 
 		registry.addNewClient(validSelectionKey);
 		registry.updateClientData();
@@ -49,7 +48,20 @@ public class ConnectionsRegistryTest {
 
 	@Test
 	public void shouldDetectClientDisconnection() {
+		final SelectionKey disconnectingSelectionKey = mock(SelectionKey.class);
+		registry = newSimpleRegistry(10, 100);
 
+		when(disconnectingSelectionKey.isValid()).thenReturn(true, false);
+		registry.addNewClient(disconnectingSelectionKey);
+		registry.updateClientData();
+
+		//client is connected
+		assertThat(registry.getActiveClientsCount()).isEqualTo(1);
+
+		registry.updateClientData();
+
+		//client is disconnected
+		assertThat(registry.getActiveClientsCount()).isZero();
 	}
 
 	@Test
@@ -60,5 +72,15 @@ public class ConnectionsRegistryTest {
 	@Test
 	public void shouldWorkAsBackgroundTask() {
 
+	}
+
+	private ConnectionsRegistry newSimpleRegistry(long keepAliveTime, long checkTimeout) {
+		return new ConnectionsRegistry(timeProvider, keepAliveTime, checkTimeout);
+	}
+
+	private SelectionKey validSelectionKeyMock() {
+		final SelectionKey validSelectionKey = mock(SelectionKey.class);
+		when(validSelectionKey.isValid()).thenReturn(true);
+		return validSelectionKey;
 	}
 }
