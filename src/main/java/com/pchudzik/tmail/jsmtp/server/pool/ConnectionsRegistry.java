@@ -3,6 +3,7 @@ package com.pchudzik.tmail.jsmtp.server.pool;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
+import com.pchudzik.tmail.jsmtp.server.common.RunnableTask;
 import com.pchudzik.tmail.jsmtp.server.common.TimeProvider;
 
 import java.nio.channels.SelectionKey;
@@ -18,9 +19,7 @@ import java.util.stream.Collectors;
  * Date: 10.04.14
  * Time: 18:47
  */
-class ConnectionsRegistry extends Thread {
-	private volatile boolean isRunning = true;
-
+class ConnectionsRegistry implements RunnableTask {
 	private final TimeProvider timeProvider;
 	private final long checkTickTimeout;
 	private final long maxKeepAliveTime;
@@ -51,24 +50,12 @@ class ConnectionsRegistry extends Thread {
 		clientEvents.offer(new ClientEvent(selectionKey, ClientStatus.HEARTBEAT));
 	}
 
-	public void shutdown() {
-		isRunning = false;
-	}
-
 	public int getActiveClientsCount() {
 		return activeClients.size();
 	}
 
 	@Override
 	public void run() {
-		while(isRunning) {
-			updateClientData();
-		}
-
-		closeAllConnections();
-	}
-
-	protected void updateClientData() {
 		final List<ClientEvent> eventsToProcess = getLatestEvents();
 		final long currentTime = timeProvider.getCurrentTime();
 		final Set<SelectionKey> newClients = Sets.newHashSet();
@@ -91,6 +78,10 @@ class ConnectionsRegistry extends Thread {
 		final Iterator<SelectionData> connectedClients = activeClients.iterator();
 		while (connectedClients.hasNext()) {
 			SelectionData data = connectedClients.next();
+			if(refreshedClients.contains(data.getSelectionKey())) {
+				data.heartbeat(currentTime);
+			}
+
 			if(brokenClients.contains(data.getSelectionKey()) || !data.isValid()) {
 				connectedClients.remove();
 				closeBrokenClient(data.getSelectionKey());
@@ -100,11 +91,12 @@ class ConnectionsRegistry extends Thread {
 				connectedClients.remove();
 				closeTimeoutConnection(data.getSelectionKey());
 			}
-
-			if(refreshedClients.contains(data.getSelectionKey())) {
-				data.heartbeat(currentTime);
-			}
 		}
+	}
+
+	@Override
+	public void onAfterRun() {
+		closeAllConnections();
 	}
 
 	private List<ClientEvent> getLatestEvents() {

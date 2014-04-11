@@ -1,10 +1,11 @@
 package com.pchudzik.tmail.jsmtp.server.pool;
 
 import com.pchudzik.tmail.jsmtp.server.common.FakeTimeProvider;
-import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.nio.channels.SelectionKey;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -14,64 +15,79 @@ import static org.mockito.Mockito.when;
  * Created by pawel on 11.04.14.
  */
 public class ConnectionsRegistryTest {
-	private final FakeTimeProvider timeProvider = new FakeTimeProvider();
-	ConnectionsRegistry registry;
+	private final long now = System.currentTimeMillis();
+	private final FakeTimeProvider timeProvider = new FakeTimeProvider(now);
 
-	@AfterMethod
-	public void shutdownRunningRegistry() {
-		if(registry != null) {
-			registry.shutdown();
-		}
+	private final long keepAliveTime = TimeUnit.MINUTES.toMillis(3);
+	private final long checkTickTimeout = 500L;
+	private final SelectionKey validSelectionKey = validSelectionKeyMock();
+	private ConnectionsRegistry registry;
+
+	@BeforeMethod
+	public void setupRegistry() {
+		registry = newSimpleRegistry(keepAliveTime, checkTickTimeout);
 	}
 
 	@Test
 	public void shouldRegisterNewClient() {
-		registry = newSimpleRegistry(10, 100);
-		final SelectionKey validSelectionKey = validSelectionKeyMock();
-
-		registry.addNewClient(validSelectionKey);
-		registry.updateClientData();
+		registerNewClient(validSelectionKey);
 
 		assertThat(registry.getActiveClientsCount())
 				.isEqualTo(1);
 	}
 
 	@Test
-	public void shouldUpdateClientHeartbeatTime() {
+	public void shouldRemoveBrokenClients() {
+		registerNewClient(validSelectionKey);
 
+		registry.clientConnectionError(validSelectionKey);
+		simulateNextRegistryTick(0);
+
+		assertThat(registry.getActiveClientsCount()).isEqualTo(0);
 	}
 
 	@Test
-	public void shouldRemoveBrokenClients() {
+	public void shouldUpdateClientHeartbeatTime() {
+		registerNewClient(validSelectionKey);
 
+		registry.onClientHeartbeat(validSelectionKey);
+		simulateNextRegistryTick(keepAliveTime);
+
+		assertThat(registry.getActiveClientsCount()).isEqualTo(1);
+	}
+
+	@Test
+	public void shouldDisconnectInactiveClients() {
+		registerNewClient(validSelectionKey);
+
+		simulateNextRegistryTick(keepAliveTime);
+
+		assertThat(registry.getActiveClientsCount()).isEqualTo(0);
 	}
 
 	@Test
 	public void shouldDetectClientDisconnection() {
 		final SelectionKey disconnectingSelectionKey = mock(SelectionKey.class);
-		registry = newSimpleRegistry(10, 100);
-
 		when(disconnectingSelectionKey.isValid()).thenReturn(true, false);
-		registry.addNewClient(disconnectingSelectionKey);
-		registry.updateClientData();
+		registerNewClient(disconnectingSelectionKey);
 
 		//client is connected
 		assertThat(registry.getActiveClientsCount()).isEqualTo(1);
 
-		registry.updateClientData();
+		registry.run();
 
 		//client is disconnected
 		assertThat(registry.getActiveClientsCount()).isZero();
 	}
 
-	@Test
-	public void shouldDisconnectInactiveClients() {
-
+	private void registerNewClient(SelectionKey validSelectionKey) {
+		registry.addNewClient(validSelectionKey);
+		registry.run();
 	}
 
-	@Test
-	public void shouldWorkAsBackgroundTask() {
-
+	private void simulateNextRegistryTick(long connectionKeepAlive) {
+		timeProvider.setNow(now + 2 * connectionKeepAlive);
+		registry.run();
 	}
 
 	private ConnectionsRegistry newSimpleRegistry(long keepAliveTime, long checkTimeout) {
