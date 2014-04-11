@@ -1,5 +1,6 @@
 package com.pchudzik.tmail.jsmtp.server.pool;
 
+import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
@@ -10,7 +11,7 @@ import java.nio.channels.SocketChannel;
  */
 @FunctionalInterface
 interface ClientHandler {
-	default void onNewClient(SocketChannel newClient) throws ClientTransimisionException {}
+	default void onNewClient(SocketChannel newClient) throws IOException {}
 
-	void processClient(SelectionKey selectionKey) throws ClientTransimisionException;
+	void processClient(SelectionKey selectionKey) throws IOException;
 }

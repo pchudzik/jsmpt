@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * Date: 10.04.14
  * Time: 18:47
  */
-class ActiveConnectionsPool extends Thread {
+class ConnectionsRegistry extends Thread {
 	private volatile boolean isRunning = true;
 
 	private final TimeProvider timeProvider;
@@ -29,11 +29,11 @@ class ActiveConnectionsPool extends Thread {
 
 	private final BlockingDeque<ClientEvent> clientEvents = Queues.newLinkedBlockingDeque();
 
-	public ActiveConnectionsPool(TimeProvider timeProvider) {
+	public ConnectionsRegistry(TimeProvider timeProvider) {
 		this(timeProvider, TimeUnit.SECONDS.toMillis(180), 100);
 	}
 
-	public ActiveConnectionsPool(TimeProvider timeProvider, long maxKeepAliveTime, long checkTickTimeout) {
+	public ConnectionsRegistry(TimeProvider timeProvider, long maxKeepAliveTime, long checkTickTimeout) {
 		this.timeProvider = timeProvider;
 		this.maxKeepAliveTime = maxKeepAliveTime;
 		this.checkTickTimeout = checkTickTimeout;
@@ -51,52 +51,64 @@ class ActiveConnectionsPool extends Thread {
 		clientEvents.offer(new ClientEvent(selectionKey, ClientStatus.HEARTBEAT));
 	}
 
+	public void shutdown() {
+		isRunning = false;
+	}
+
+	public int getActiveClientsCount() {
+		return activeClients.size();
+	}
+
 	@Override
 	public void run() {
 		while(isRunning) {
-			final List<ClientEvent> eventsToProcess = getLatestEvents();
-			if(eventsToProcess.isEmpty()) {
-				continue;
-			}
-
-			final Set<SelectionKey> newClients = Sets.newHashSet();
-			final Set<SelectionKey> brokenClients = Sets.newHashSet();
-			final Set<SelectionKey> refreshedClients = Sets.newHashSet();
-
-			clientEvents.stream()
-					.forEach(event -> {
-						switch (event.getClientStatus()) {
-							case NEW: newClients.add(event.getSelectionKey()); break;
-							case BROKEN: brokenClients.add(event.getSelectionKey()); break;
-							case HEARTBEAT: refreshedClients.add(event.getSelectionKey()); break;
-						}
-					});
-
-			final long currentTime = timeProvider.getCurrentTime();
-			final Iterator<SelectionData> connectedClients = activeClients.iterator();
-			while (connectedClients.hasNext()) {
-				SelectionData data = connectedClients.next();
-				if(brokenClients.contains(data.getSelectionKey()) || !data.isValid()) {
-					connectedClients.remove();
-					closeBrokenClient(data.getSelectionKey());
-				}
-
-				if(currentTime - data.getLastActiveTime() > maxKeepAliveTime) {
-					connectedClients.remove();
-					closeTimeoutConnection(data.getSelectionKey());
-				}
-
-				if(refreshedClients.contains(data.getSelectionKey())) {
-					data.heartbeat(currentTime);
-				}
-			}
-
-			activeClients.addAll(newClients.stream()
-					.map(selector -> new SelectionData(selector, currentTime))
-					.collect(Collectors.<SelectionData>toList()));
+			updateClientData();
 		}
 
 		closeAllConnections();
+	}
+
+	protected void updateClientData() {
+		final List<ClientEvent> eventsToProcess = getLatestEvents();
+		if(eventsToProcess.isEmpty()) {
+			return;
+		}
+
+		final Set<SelectionKey> newClients = Sets.newHashSet();
+		final Set<SelectionKey> brokenClients = Sets.newHashSet();
+		final Set<SelectionKey> refreshedClients = Sets.newHashSet();
+
+		clientEvents.stream()
+				.forEach(event -> {
+					switch (event.getClientStatus()) {
+						case NEW: newClients.add(event.getSelectionKey()); break;
+						case BROKEN: brokenClients.add(event.getSelectionKey()); break;
+						case HEARTBEAT: refreshedClients.add(event.getSelectionKey()); break;
+					}
+				});
+
+		final long currentTime = timeProvider.getCurrentTime();
+		final Iterator<SelectionData> connectedClients = activeClients.iterator();
+		while (connectedClients.hasNext()) {
+			SelectionData data = connectedClients.next();
+			if(brokenClients.contains(data.getSelectionKey()) || !data.isValid()) {
+				connectedClients.remove();
+				closeBrokenClient(data.getSelectionKey());
+			}
+
+			if(currentTime - data.getLastActiveTime() > maxKeepAliveTime) {
+				connectedClients.remove();
+				closeTimeoutConnection(data.getSelectionKey());
+			}
+
+			if(refreshedClients.contains(data.getSelectionKey())) {
+				data.heartbeat(currentTime);
+			}
+		}
+
+		activeClients.addAll(newClients.stream()
+				.map(selector -> new SelectionData(selector, currentTime))
+				.collect(Collectors.<SelectionData>toList()));
 	}
 
 	private List<ClientEvent> getLatestEvents() {
@@ -113,10 +125,6 @@ class ActiveConnectionsPool extends Thread {
 
 		clientEvents.drainTo(eventsToProcess);
 		return eventsToProcess;
-	}
-
-	public void shutdown() {
-		isRunning = false;
 	}
 
 	private void closeAllConnections() {
