@@ -53,7 +53,7 @@ public class ConnectionPoolTest {
 		final Semaphore receivedDataSemaphore = new Semaphore(1);
 		receivedDataSemaphore.drainPermits();	//no go with test until data is received
 
-		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ServerThreadConfiguration("reading server"), clientConnectionFactory, handler -> {
+		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ConnectionPoolConfiguration("reading server"), clientConnectionFactory, handler -> {
 			try (Reader userDataReader = new SocketChannelDataReader((SocketChannel) handler.channel())) {
 				receivedString.setValue(IOUtils.toString(userDataReader));
 				receivedDataSemaphore.release();	//synchronize data receiving between threads
@@ -109,7 +109,7 @@ public class ConnectionPoolTest {
 
 		connectionPool = new ConnectionPool(
 				SelectionKey.OP_WRITE,
-				new ServerThreadConfiguration("anyName"),
+				new ConnectionPoolConfiguration("anyName"),
 				clientConnectionFactory, failingClient
 		);
 
@@ -155,7 +155,7 @@ public class ConnectionPoolTest {
 	private ConnectionPool doNothingConnectionPool(ClientHandler clientHandler) throws IOException {
 		return new DoNothingConnectionPool(
 				anySelectionOperation,
-				new ServerThreadConfiguration("accept thread")
+				new ConnectionPoolConfiguration("accept thread")
 						.setNewClientsQueueSize(1)
 						.setNewClientRegisterTimeout(1),
 				clientHandler,
@@ -164,8 +164,8 @@ public class ConnectionPoolTest {
 	}
 
 	private static class DoNothingConnectionPool extends ConnectionPool {
-		public DoNothingConnectionPool(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
-			super(selectionOperation, serverThreadConfiguration, connectionFactory, clientHandler);
+		public DoNothingConnectionPool(int selectionOperation, ConnectionPoolConfiguration connectionPoolConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
+			super(selectionOperation, connectionPoolConfiguration, connectionFactory, clientHandler);
 		}
 
 		@Override

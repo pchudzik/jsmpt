@@ -25,7 +25,7 @@ public class ConnectionPool implements RunnableTask {
 	private static final Logger log = LoggerFactory.getLogger(ConnectionPool.class);
 
 	private final int selectionOperation;
-	private final ServerThreadConfiguration serverThreadConfiguration;
+	private final ConnectionPoolConfiguration connectionPoolConfiguration;
 
 	private final ClientHandler clientHandler;
 	private final ClientConnectionFactory connectionFactory;
@@ -33,19 +33,19 @@ public class ConnectionPool implements RunnableTask {
 	private final Selector clientSelector;
 	private final LinkedBlockingQueue<SocketChannel> incomingConnectionsQueue;
 
-	public ConnectionPool(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
+	public ConnectionPool(int selectionOperation, ConnectionPoolConfiguration connectionPoolConfiguration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
 		this.selectionOperation = selectionOperation;
-		this.serverThreadConfiguration = serverThreadConfiguration;
+		this.connectionPoolConfiguration = connectionPoolConfiguration;
 		this.clientHandler = clientHandler;
 		this.connectionFactory = connectionFactory;
 
-		this.incomingConnectionsQueue = Queues.newLinkedBlockingQueue(serverThreadConfiguration.getNewClientsQueueSize());
+		this.incomingConnectionsQueue = Queues.newLinkedBlockingQueue(connectionPoolConfiguration.getNewClientsQueueSize());
 		this.clientSelector = Selector.open();
 	}
 
 	public void registerClient(SocketChannel newClient) throws ClientRejectedException {
 		try {
-			final boolean accepted = incomingConnectionsQueue.offer(newClient, serverThreadConfiguration.getNewClientRegisterTimeout(), TimeUnit.MILLISECONDS);
+			final boolean accepted = incomingConnectionsQueue.offer(newClient, connectionPoolConfiguration.getNewClientRegisterTimeout(), TimeUnit.MILLISECONDS);
 			if(!accepted) {
 				throw new ClientRejectedException("Client not accepted by thread " + Thread.currentThread().getName() +
 						" waiting queue size " + incomingConnectionsQueue.size());
