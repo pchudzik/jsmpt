@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.jsmtp.server.pool;
+package com.pchudzik.tmail.jsmtp.server.nio.pool;
 
 import com.pchudzik.tmail.jsmtp.server.common.FakeTimeProvider;
 import org.testng.annotations.BeforeMethod;

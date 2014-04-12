@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.jsmtp.server.pool;
+package com.pchudzik.tmail.jsmtp.server.nio.pool;
 
 /**
  * User: pawel

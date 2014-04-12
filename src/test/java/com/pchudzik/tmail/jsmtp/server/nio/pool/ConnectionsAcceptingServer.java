@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.jsmtp.server.pool;
+package com.pchudzik.tmail.jsmtp.server.nio.pool;
 
 import java.io.Closeable;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.jsmtp.server.pool;
+package com.pchudzik.tmail.jsmtp.server.nio.pool;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
