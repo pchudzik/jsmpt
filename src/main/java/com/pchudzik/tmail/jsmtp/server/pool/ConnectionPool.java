@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * Date: 06.04.14
  * Time: 18:10
  */
-public class ServerThread extends Thread {
+public class ConnectionPool extends Thread {
 	private final int selectionOperation;
 	private final ServerThreadConfiguration serverThreadConfiguration;
 	private final ClientHandler clientHandler;
@@ -32,7 +32,7 @@ public class ServerThread extends Thread {
 	private final Selector clientSelector;
 	private final LinkedBlockingQueue<SocketChannel> incomingConnectionsQueue;
 
-	public ServerThread(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientHandler clientHandler) throws IOException {
+	public ConnectionPool(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientHandler clientHandler) throws IOException {
 		this.selectionOperation = selectionOperation;
 		this.serverThreadConfiguration = serverThreadConfiguration;
 		this.clientHandler = clientHandler;

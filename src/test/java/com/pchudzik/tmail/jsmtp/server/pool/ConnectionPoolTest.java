@@ -28,26 +28,26 @@ import static org.mockito.Mockito.mock;
  * Date: 08.04.14
  * Time: 16:21
  */
-public class ServerThreadTest {
+public class ConnectionPoolTest {
 	private static final boolean STARTED = true;
 	private static final int anySelectionOperation = SelectionKey.OP_ACCEPT;
 
-	private ServerThread serverThread;
+	private ConnectionPool connectionPool;
 
 	@AfterMethod
 	public void shutdownThread() throws IOException {
-		if(serverThread != null) {
-			serverThread.shutdown();
+		if(connectionPool != null) {
+			connectionPool.shutdown();
 		}
 	}
 
 	@Test
 	public void shouldRejectClientsIfIncomingConnectionsQueueExceeded() throws Exception {
-		serverThread = doNothingServer(STARTED, doNothingHandler());
+		connectionPool = doNothingServer(STARTED, doNothingHandler());
 
-		serverThread.registerClient(mock(SocketChannel.class));
+		connectionPool.registerClient(mock(SocketChannel.class));
 
-		catchException(serverThread).registerClient(mock(SocketChannel.class));
+		catchException(connectionPool).registerClient(mock(SocketChannel.class));
 
 		assertThat((Exception)caughtException())
 				.isInstanceOf(ClientRejectedException.class);
@@ -55,9 +55,9 @@ public class ServerThreadTest {
 
 	@Test
 	public void shouldRejectIncomingConnectionsWhenNotStarted() throws Exception {
-		serverThread = doNothingServer(!STARTED, doNothingHandler());
+		connectionPool = doNothingServer(!STARTED, doNothingHandler());
 
-		catchException(serverThread).registerClient(mock(SocketChannel.class));
+		catchException(connectionPool).registerClient(mock(SocketChannel.class));
 
 		assertThat((Exception)caughtException())
 				.isInstanceOf(ClientRejectedException.class);
@@ -65,10 +65,10 @@ public class ServerThreadTest {
 
 	@Test
 	public void shouldRejectIncomingConnectionsWhenClosed() throws Exception {
-		serverThread = doNothingServer(STARTED, doNothingHandler());
-		serverThread.shutdown();
+		connectionPool = doNothingServer(STARTED, doNothingHandler());
+		connectionPool.shutdown();
 
-		catchException(serverThread).registerClient(mock(SocketChannel.class));
+		catchException(connectionPool).registerClient(mock(SocketChannel.class));
 
 		assertThat((Exception)caughtException())
 				.isInstanceOf(ClientRejectedException.class);
@@ -81,7 +81,7 @@ public class ServerThreadTest {
 		final Semaphore receivedDataSemaphore = new Semaphore(1);
 		receivedDataSemaphore.drainPermits();	//no go with test until data is received
 
-		serverThread = new ServerThread(SelectionKey.OP_READ, new ServerThreadConfiguration("reading server"), handler -> {
+		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ServerThreadConfiguration("reading server"), handler -> {
 			try (Reader userDataReader = new SocketChannelDataReader((SocketChannel) handler.channel())) {
 				receivedString.setValue(IOUtils.toString(userDataReader));
 				receivedDataSemaphore.release();	//synchronize data receiving between threads
@@ -90,8 +90,8 @@ public class ServerThreadTest {
 			}
 		});
 
-		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(serverThread)) {
-			serverThread.start();
+		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool)) {
+			connectionPool.start();
 			connectionsAcceptingServer.start();
 
 			writeDataToServer(
@@ -118,9 +118,9 @@ public class ServerThreadTest {
 
 	@Test
 	public void clientHandlerExceptionOnProcessClientShouldNotDestroyThread() throws Exception {
-		serverThread = doNothingServer(STARTED, failingClientHandler());
+		connectionPool = doNothingServer(STARTED, failingClientHandler());
 
-		catchException(serverThread).registerClient(mock(SocketChannel.class));
+		catchException(connectionPool).registerClient(mock(SocketChannel.class));
 
 		assertThat((Exception)caughtException()).isNull();
 	}
@@ -139,13 +139,13 @@ public class ServerThreadTest {
 			}
 		};
 
-		serverThread = new ServerThread(
+		connectionPool = new ConnectionPool(
 				SelectionKey.OP_WRITE,
 				new ServerThreadConfiguration("anyName"),
 				failingClient);
 
-		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(serverThread)) {
-			serverThread.start();
+		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool)) {
+			connectionPool.start();
 			connectionsAcceptingServer.start();
 
 			writeDataToServer(
@@ -183,8 +183,8 @@ public class ServerThreadTest {
 		return handler -> {};
 	}
 
-	private ServerThread doNothingServer(boolean startThread, ClientHandler clientHandler) throws IOException {
-		return new DoNothingServerThread(
+	private ConnectionPool doNothingServer(boolean startThread, ClientHandler clientHandler) throws IOException {
+		return new DoNothingConnectionPool(
 				anySelectionOperation,
 				new ServerThreadConfiguration("accept thread")
 						.setNewClientsQueueSize(1)
@@ -193,12 +193,12 @@ public class ServerThreadTest {
 		).setStarted(startThread);
 	}
 
-	private static class DoNothingServerThread extends ServerThread {
-		public DoNothingServerThread(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientHandler clientHandler) throws IOException {
+	private static class DoNothingConnectionPool extends ConnectionPool {
+		public DoNothingConnectionPool(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientHandler clientHandler) throws IOException {
 			super(selectionOperation, serverThreadConfiguration, clientHandler);
 		}
 
-		public DoNothingServerThread setStarted(boolean started) {
+		public DoNothingConnectionPool setStarted(boolean started) {
 			isWorking = started;
 			return this;
 		}

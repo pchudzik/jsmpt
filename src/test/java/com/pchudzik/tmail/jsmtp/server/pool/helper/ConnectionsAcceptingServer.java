@@ -1,6 +1,6 @@
 package com.pchudzik.tmail.jsmtp.server.pool.helper;
 
-import com.pchudzik.tmail.jsmtp.server.pool.ServerThread;
+import com.pchudzik.tmail.jsmtp.server.pool.ConnectionPool;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ConnectionsAcceptingServer extends Thread implements Closeable {
 	private int port = -1;
 	private final String host;
-	private final ServerThread serverThread;
+	private final ConnectionPool connectionPool;
 
 	private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
@@ -26,14 +26,14 @@ public class ConnectionsAcceptingServer extends Thread implements Closeable {
 	private ServerSocket serverSocket;
 	private Selector serverSelector;
 
-	public ConnectionsAcceptingServer(ServerThread serverThread) {
-		this("localhost", selectPort(), serverThread);
+	public ConnectionsAcceptingServer(ConnectionPool connectionPool) {
+		this("localhost", selectPort(), connectionPool);
 	}
 
-	public ConnectionsAcceptingServer(String host, int port, ServerThread serverThread) {
+	public ConnectionsAcceptingServer(String host, int port, ConnectionPool connectionPool) {
 		this.port = port;
 		this.host = host;
-		this.serverThread =serverThread;
+		this.connectionPool = connectionPool;
 	}
 
 	public int getPort() {
@@ -72,7 +72,7 @@ public class ConnectionsAcceptingServer extends Thread implements Closeable {
 						SelectionKey key = it.next();
 						if(key.isAcceptable()) {
 							ServerSocketChannel channel = (ServerSocketChannel) key.channel();
-							serverThread.registerClient(channel.accept());
+							connectionPool.registerClient(channel.accept());
 						}
 						it.remove();
 					}
