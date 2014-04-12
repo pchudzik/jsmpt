@@ -3,16 +3,18 @@ package com.pchudzik.tmail.jsmtp.server.pool;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
+import com.pchudzik.tmail.jsmtp.server.ClientRejectedException;
 import com.pchudzik.tmail.jsmtp.server.common.RunnableTask;
 import com.pchudzik.tmail.jsmtp.server.common.TimeProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.nio.channels.SelectionKey;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * User: pawel
@@ -20,13 +22,14 @@ import java.util.stream.Collectors;
  * Time: 18:47
  */
 class ConnectionsRegistry implements RunnableTask {
+	private static final Logger log = LoggerFactory.getLogger(ConnectionsRegistry.class);
+
 	private final TimeProvider timeProvider;
 	private final long checkTickTimeout;
 	private final long maxKeepAliveTime;
 
-	private final List<SelectionData> activeClients = Lists.newLinkedList();
-
-	private final BlockingDeque<ClientEvent> clientEvents = Queues.newLinkedBlockingDeque();
+	private final Set<ClientConnection> activeClients = Sets.newHashSet();
+	private final BlockingDeque<ClientConnection> newClients = Queues.newLinkedBlockingDeque();
 
 	public ConnectionsRegistry(TimeProvider timeProvider) {
 		this(timeProvider, TimeUnit.SECONDS.toMillis(180), 100);
@@ -38,16 +41,11 @@ class ConnectionsRegistry implements RunnableTask {
 		this.checkTickTimeout = checkTickTimeout;
 	}
 
-	public void addNewClient(SelectionKey selectionKey) {
-		clientEvents.offer(new ClientEvent(selectionKey, ClientStatus.NEW));
-	}
-
-	public void clientConnectionError(SelectionKey selectionKey) {
-		clientEvents.offer(new ClientEvent(selectionKey, ClientStatus.BROKEN));
-	}
-
-	public void onClientHeartbeat(SelectionKey selectionKey) {
-		clientEvents.offer(new ClientEvent(selectionKey, ClientStatus.HEARTBEAT));
+	public void addNewClient(ClientConnection clientConnection) throws ClientRejectedException {
+		boolean result = newClients.offer(clientConnection);
+		if(!result) {
+			throw new ClientRejectedException("Can not register client");
+		}
 	}
 
 	public int getActiveClientsCount() {
@@ -56,40 +54,29 @@ class ConnectionsRegistry implements RunnableTask {
 
 	@Override
 	public void run() {
-		final List<ClientEvent> eventsToProcess = getLatestEvents();
 		final long currentTime = timeProvider.getCurrentTime();
-		final Set<SelectionKey> newClients = Sets.newHashSet();
-		final Set<SelectionKey> brokenClients = Sets.newHashSet();
-		final Set<SelectionKey> refreshedClients = Sets.newHashSet();
+		List<ClientConnection> newClients = getLatestEvents();
+		newClients.forEach(client -> {
+			if(!activeClients.contains(client)) {
+				log.debug("New client connection {}", client);
+				activeClients.add(client);
+			} else {
+				log.warn("Client already registered {}", client);
+			}
+		});
 
-		eventsToProcess.stream()
-				.forEach(event -> {
-					switch (event.getClientStatus()) {
-						case NEW: newClients.add(event.getSelectionKey()); break;
-						case BROKEN: brokenClients.add(event.getSelectionKey()); break;
-						case HEARTBEAT: refreshedClients.add(event.getSelectionKey()); break;
-					}
-				});
-
-		activeClients.addAll(newClients.stream()
-				.map(selector -> new SelectionData(selector, currentTime))
-				.collect(Collectors.<SelectionData>toList()));
-
-		final Iterator<SelectionData> connectedClients = activeClients.iterator();
+		final Iterator<ClientConnection> connectedClients = activeClients.iterator();
 		while (connectedClients.hasNext()) {
-			SelectionData data = connectedClients.next();
-			if(refreshedClients.contains(data.getSelectionKey())) {
-				data.heartbeat(currentTime);
-			}
+			final ClientConnection connection = connectedClients.next();
 
-			if(brokenClients.contains(data.getSelectionKey()) || !data.isValid()) {
+			if(!connection.isValid()) {
+				log.info("Client connection broken {}", connection);
+				performClientCloseAction(connection::close);
 				connectedClients.remove();
-				closeBrokenClient(data.getSelectionKey());
-			}
-
-			if(currentTime - data.getLastActiveTime() > maxKeepAliveTime) {
+			} else if(currentTime - connection.getLastHeartbeat() > maxKeepAliveTime) {
+				log.info("Client connection {} timeout after {}", connection, currentTime - connection.getLastHeartbeat());
+				performClientCloseAction(connection::timeout);
 				connectedClients.remove();
-				closeTimeoutConnection(data.getSelectionKey());
 			}
 		}
 	}
@@ -99,80 +86,37 @@ class ConnectionsRegistry implements RunnableTask {
 		closeAllConnections();
 	}
 
-	private List<ClientEvent> getLatestEvents() {
-		final List<ClientEvent> eventsToProcess = Lists.newLinkedList();
+	@FunctionalInterface
+	private interface ClientCloseAction {
+		void close() throws IOException;
+	}
 
-		ClientEvent event = null;
+	private void performClientCloseAction(ClientCloseAction closeAction) {
 		try {
-			event = clientEvents.poll(checkTickTimeout, TimeUnit.MILLISECONDS);
+			closeAction.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private List<ClientConnection> getLatestEvents() {
+		final List<ClientConnection> eventsToProcess = Lists.newLinkedList();
+
+		ClientConnection newConnection = null;
+		try {
+			newConnection = newClients.poll(checkTickTimeout, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) { }
 
-		if(event != null) {
-			eventsToProcess.add(event);
+		if(newConnection != null) {
+			eventsToProcess.add(newConnection);
 		}
 
-		clientEvents.drainTo(eventsToProcess);
+		newClients.drainTo(eventsToProcess);
 		return eventsToProcess;
 	}
 
 	private void closeAllConnections() {
-
-	}
-
-	private void closeTimeoutConnection(SelectionKey selectionKey) {
-
-	}
-
-	private void closeBrokenClient(SelectionKey selectionKey) {
-
-	}
-
-	private static class SelectionKeyAware {
-		private final SelectionKey selectionKey;
-
-		private SelectionKeyAware(SelectionKey selectionKey) {
-			this.selectionKey = selectionKey;
-		}
-
-		public boolean isValid() {
-			return selectionKey.isValid();
-		}
-
-		public SelectionKey getSelectionKey() {
-			return selectionKey;
-		}
-	}
-
-	private static enum ClientStatus {
-		BROKEN, NEW, HEARTBEAT
-	}
-
-	private static class ClientEvent extends SelectionKeyAware {
-		private final ClientStatus clientStatus;
-		private ClientEvent(SelectionKey selectionKey, ClientStatus clientStatus) {
-			super(selectionKey);
-			this.clientStatus = clientStatus;
-		}
-
-		private ClientStatus getClientStatus() {
-			return clientStatus;
-		}
-	}
-
-	private static class SelectionData extends SelectionKeyAware{
-		private long lastActiveTime;
-
-		private SelectionData(SelectionKey selectionKey, long currentTime) {
-			super(selectionKey);
-			this.lastActiveTime = currentTime;
-		}
-
-		public void heartbeat(long currentTime) {
-			lastActiveTime = currentTime;
-		}
-
-		public long getLastActiveTime() {
-			return lastActiveTime;
-		}
+		activeClients.stream().forEach(connection -> performClientCloseAction(connection::close));
+		activeClients.clear();
 	}
 }

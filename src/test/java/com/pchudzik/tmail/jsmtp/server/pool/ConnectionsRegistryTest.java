@@ -4,12 +4,10 @@ import com.pchudzik.tmail.jsmtp.server.common.FakeTimeProvider;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.nio.channels.SelectionKey;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by pawel on 11.04.14.
@@ -20,83 +18,72 @@ public class ConnectionsRegistryTest {
 
 	private final long keepAliveTime = TimeUnit.MINUTES.toMillis(3);
 	private final long checkTickTimeout = 500L;
-	private final SelectionKey validSelectionKey = validSelectionKeyMock();
 	private ConnectionsRegistry registry;
 
 	@BeforeMethod
 	public void setupRegistry() {
-		registry = newSimpleRegistry(keepAliveTime, checkTickTimeout);
+		registry = new ConnectionsRegistry(timeProvider, keepAliveTime, checkTickTimeout);
 	}
 
 	@Test
-	public void shouldRegisterNewClient() {
-		registerNewClient(validSelectionKey);
+	public void shouldRegisterNewClient() throws Exception {
+		registerNewClient(validConnectionMock());
 
 		assertThat(registry.getActiveClientsCount())
 				.isEqualTo(1);
 	}
 
 	@Test
-	public void shouldRemoveBrokenClients() {
-		registerNewClient(validSelectionKey);
+	public void shouldRemoveBrokenClients() throws Exception {
+		final ClientConnection connection = connectionMock();
+		when(connection.isValid()).thenReturn(false);
 
-		registry.clientConnectionError(validSelectionKey);
-		simulateNextRegistryTick(0);
+		registerNewClient(connection);
 
 		assertThat(registry.getActiveClientsCount()).isEqualTo(0);
+		verify(connection, times(1)).close();
 	}
 
 	@Test
-	public void shouldUpdateClientHeartbeatTime() {
-		registerNewClient(validSelectionKey);
+	public void shouldDisconnectInactiveClients() throws Exception {
+		final ClientConnection validClientConnection = validConnectionMock();
+		when(validClientConnection.getLastHeartbeat()).thenReturn(now - 2 * keepAliveTime);
 
-		registry.onClientHeartbeat(validSelectionKey);
-		simulateNextRegistryTick(keepAliveTime);
+		registerNewClient(validClientConnection);
+
+
+		assertThat(registry.getActiveClientsCount()).isEqualTo(0);
+		verify(validClientConnection, times(1)).timeout();
+	}
+
+	@Test
+	public void keepAliveValidClientConnection() throws Exception {
+		final long nowInFuture = now + keepAliveTime;
+		final ClientConnection connection = validConnectionMock();
+
+		registerNewClient(connection);
+
+		timeProvider.setNow(nowInFuture);
+		when(connection.getLastHeartbeat()).thenReturn(nowInFuture);
+
+		registry.run();
 
 		assertThat(registry.getActiveClientsCount()).isEqualTo(1);
 	}
 
-	@Test
-	public void shouldDisconnectInactiveClients() {
-		registerNewClient(validSelectionKey);
-
-		simulateNextRegistryTick(keepAliveTime);
-
-		assertThat(registry.getActiveClientsCount()).isEqualTo(0);
-	}
-
-	@Test
-	public void shouldDetectClientDisconnection() {
-		final SelectionKey disconnectingSelectionKey = mock(SelectionKey.class);
-		when(disconnectingSelectionKey.isValid()).thenReturn(true, false);
-		registerNewClient(disconnectingSelectionKey);
-
-		//client is connected
-		assertThat(registry.getActiveClientsCount()).isEqualTo(1);
-
-		registry.run();
-
-		//client is disconnected
-		assertThat(registry.getActiveClientsCount()).isZero();
-	}
-
-	private void registerNewClient(SelectionKey validSelectionKey) {
-		registry.addNewClient(validSelectionKey);
+	private void registerNewClient(ClientConnection clientConnection) throws Exception {
+		registry.addNewClient(clientConnection);
 		registry.run();
 	}
 
-	private void simulateNextRegistryTick(long connectionKeepAlive) {
-		timeProvider.setNow(now + 2 * connectionKeepAlive);
-		registry.run();
+	private ClientConnection connectionMock() {
+		return mock(ClientConnection.class);
 	}
 
-	private ConnectionsRegistry newSimpleRegistry(long keepAliveTime, long checkTimeout) {
-		return new ConnectionsRegistry(timeProvider, keepAliveTime, checkTimeout);
-	}
-
-	private SelectionKey validSelectionKeyMock() {
-		final SelectionKey validSelectionKey = mock(SelectionKey.class);
-		when(validSelectionKey.isValid()).thenReturn(true);
-		return validSelectionKey;
+	private ClientConnection validConnectionMock() {
+		final ClientConnection validConnection = connectionMock();
+		when(validConnection.isValid()).thenReturn(true);
+		when(validConnection.getLastHeartbeat()).thenReturn(now);
+		return validConnection;
 	}
 }
