@@ -23,4 +23,7 @@ public class ClientConnection {
 	public void timeout() throws IOException {
 
 	}
+
+	public void setBroken(Throwable broken) {
+	}
 }

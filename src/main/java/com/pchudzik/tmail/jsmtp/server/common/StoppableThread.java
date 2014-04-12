@@ -8,7 +8,7 @@ public class StoppableThread extends Thread {
 
 	private final RunnableTask task;
 
-	protected StoppableThread(RunnableTask task) {
+	public StoppableThread(RunnableTask task) {
 		this.task = task;
 	}
 

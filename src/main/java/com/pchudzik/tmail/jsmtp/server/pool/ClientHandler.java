@@ -11,7 +11,7 @@ import java.nio.channels.SocketChannel;
  */
 @FunctionalInterface
 interface ClientHandler {
-	default void onNewClient(SocketChannel newClient) throws IOException {}
+	default void onNewClientConnection(ClientConnection newClient) throws IOException {}
 
 	void processClient(SelectionKey selectionKey) throws IOException;
 }

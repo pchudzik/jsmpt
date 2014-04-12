@@ -1,11 +1,11 @@
 package com.pchudzik.tmail.jsmtp.server.pool;
 
 import com.pchudzik.tmail.jsmtp.server.ClientRejectedException;
+import com.pchudzik.tmail.jsmtp.server.common.StoppableThread;
 import com.pchudzik.tmail.jsmtp.server.pool.helper.ConnectionsAcceptingServer;
 import com.pchudzik.tmail.jsmtp.server.pool.helper.SocketChannelDataReader;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableObject;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -29,44 +29,16 @@ import static org.mockito.Mockito.mock;
  * Time: 16:21
  */
 public class ConnectionPoolTest {
-	private static final boolean STARTED = true;
 	private static final int anySelectionOperation = SelectionKey.OP_ACCEPT;
 
 	private ConnectionPool connectionPool;
-
-	@AfterMethod
-	public void shutdownThread() throws IOException {
-		if(connectionPool != null) {
-			connectionPool.shutdown();
-		}
-	}
+	private ClientConnectionFactory clientConnectionFactory = mock(ClientConnectionFactory.class);
 
 	@Test
 	public void shouldRejectClientsIfIncomingConnectionsQueueExceeded() throws Exception {
-		connectionPool = doNothingServer(STARTED, doNothingHandler());
+		connectionPool = doNothingConnectionPool(doNothingHandler());
 
 		connectionPool.registerClient(mock(SocketChannel.class));
-
-		catchException(connectionPool).registerClient(mock(SocketChannel.class));
-
-		assertThat((Exception)caughtException())
-				.isInstanceOf(ClientRejectedException.class);
-	}
-
-	@Test
-	public void shouldRejectIncomingConnectionsWhenNotStarted() throws Exception {
-		connectionPool = doNothingServer(!STARTED, doNothingHandler());
-
-		catchException(connectionPool).registerClient(mock(SocketChannel.class));
-
-		assertThat((Exception)caughtException())
-				.isInstanceOf(ClientRejectedException.class);
-	}
-
-	@Test
-	public void shouldRejectIncomingConnectionsWhenClosed() throws Exception {
-		connectionPool = doNothingServer(STARTED, doNothingHandler());
-		connectionPool.shutdown();
 
 		catchException(connectionPool).registerClient(mock(SocketChannel.class));
 
@@ -81,7 +53,7 @@ public class ConnectionPoolTest {
 		final Semaphore receivedDataSemaphore = new Semaphore(1);
 		receivedDataSemaphore.drainPermits();	//no go with test until data is received
 
-		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ServerThreadConfiguration("reading server"), handler -> {
+		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ServerThreadConfiguration("reading server"), clientConnectionFactory, handler -> {
 			try (Reader userDataReader = new SocketChannelDataReader((SocketChannel) handler.channel())) {
 				receivedString.setValue(IOUtils.toString(userDataReader));
 				receivedDataSemaphore.release();	//synchronize data receiving between threads
@@ -91,34 +63,30 @@ public class ConnectionPoolTest {
 		});
 
 		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool)) {
-			connectionPool.start();
-			connectionsAcceptingServer.start();
+			StoppableThread stoppableThread = new StoppableThread(connectionPool);
+			stoppableThread.start();
 
-			writeDataToServer(
-					connectionsAcceptingServer.getHost(),
-					connectionsAcceptingServer.getPort(),
-					anyString);
+			try {
+				connectionsAcceptingServer.start();
 
-			receivedDataSemaphore.tryAcquire(1_000L, TimeUnit.MILLISECONDS);
+				writeDataToServer(
+						connectionsAcceptingServer.getHost(),
+						connectionsAcceptingServer.getPort(),
+						anyString);
 
-			assertThat((String) receivedString.getValue())
-					.isEqualTo(anyString);
+				receivedDataSemaphore.tryAcquire(1_000L, TimeUnit.MILLISECONDS);
+
+				assertThat((String) receivedString.getValue())
+						.isEqualTo(anyString);
+			} finally {
+				stoppableThread.shutdown();
+			}
 		}
 	}
 
 	@Test
-	public void shouldRemoveDisconnectedClients() {
-
-	}
-
-	@Test
-	public void shouldDisconnectAllClientsOnShutdown() {
-
-	}
-
-	@Test
 	public void clientHandlerExceptionOnProcessClientShouldNotDestroyThread() throws Exception {
-		connectionPool = doNothingServer(STARTED, failingClientHandler());
+		connectionPool = doNothingConnectionPool(failingClientHandler());
 
 		catchException(connectionPool).registerClient(mock(SocketChannel.class));
 
@@ -129,7 +97,7 @@ public class ConnectionPoolTest {
 	public void clientHandlerExceptionOnNewClientShouldNotDestroyThread() throws Exception {
 		ClientHandler failingClient = new ClientHandler() {
 			@Override
-			public void onNewClient(SocketChannel newClient) {
+			public void onNewClientConnection(ClientConnection newClient) {
 				throw new RuntimeException();
 			}
 
@@ -142,10 +110,11 @@ public class ConnectionPoolTest {
 		connectionPool = new ConnectionPool(
 				SelectionKey.OP_WRITE,
 				new ServerThreadConfiguration("anyName"),
-				failingClient);
+				clientConnectionFactory, failingClient
+		);
 
 		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool)) {
-			connectionPool.start();
+			connectionPool.run();
 			connectionsAcceptingServer.start();
 
 			writeDataToServer(
@@ -165,7 +134,7 @@ public class ConnectionPoolTest {
 			}
 
 			@Override
-			public void onNewClient(SocketChannel newClient) {
+			public void onNewClientConnection(ClientConnection newClient) {
 				throw new RuntimeException();
 			}
 		};
@@ -183,24 +152,20 @@ public class ConnectionPoolTest {
 		return handler -> {};
 	}
 
-	private ConnectionPool doNothingServer(boolean startThread, ClientHandler clientHandler) throws IOException {
+	private ConnectionPool doNothingConnectionPool(ClientHandler clientHandler) throws IOException {
 		return new DoNothingConnectionPool(
 				anySelectionOperation,
 				new ServerThreadConfiguration("accept thread")
 						.setNewClientsQueueSize(1)
 						.setNewClientRegisterTimeout(1),
-				clientHandler
-		).setStarted(startThread);
+				clientHandler,
+				clientConnectionFactory
+		);
 	}
 
 	private static class DoNothingConnectionPool extends ConnectionPool {
-		public DoNothingConnectionPool(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientHandler clientHandler) throws IOException {
-			super(selectionOperation, serverThreadConfiguration, clientHandler);
-		}
-
-		public DoNothingConnectionPool setStarted(boolean started) {
-			isWorking = started;
-			return this;
+		public DoNothingConnectionPool(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
+			super(selectionOperation, serverThreadConfiguration, connectionFactory, clientHandler);
 		}
 
 		@Override

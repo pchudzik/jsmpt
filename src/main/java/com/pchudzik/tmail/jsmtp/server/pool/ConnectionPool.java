@@ -3,6 +3,7 @@ package com.pchudzik.tmail.jsmtp.server.pool;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.pchudzik.tmail.jsmtp.server.ClientRejectedException;
+import com.pchudzik.tmail.jsmtp.server.common.RunnableTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,41 +21,35 @@ import java.util.concurrent.TimeUnit;
  * Date: 06.04.14
  * Time: 18:10
  */
-public class ConnectionPool extends Thread {
+public class ConnectionPool implements RunnableTask {
+	private static final Logger log = LoggerFactory.getLogger(ConnectionPool.class);
+
 	private final int selectionOperation;
 	private final ServerThreadConfiguration serverThreadConfiguration;
+
 	private final ClientHandler clientHandler;
-
-	private final Logger log;
-
-	protected volatile boolean isWorking = false;
+	private final ClientConnectionFactory connectionFactory;
 
 	private final Selector clientSelector;
 	private final LinkedBlockingQueue<SocketChannel> incomingConnectionsQueue;
 
-	public ConnectionPool(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientHandler clientHandler) throws IOException {
+	public ConnectionPool(int selectionOperation, ServerThreadConfiguration serverThreadConfiguration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
 		this.selectionOperation = selectionOperation;
 		this.serverThreadConfiguration = serverThreadConfiguration;
 		this.clientHandler = clientHandler;
+		this.connectionFactory = connectionFactory;
 
-		this.log = LoggerFactory.getLogger(getClass().getSimpleName() + " - " + serverThreadConfiguration.getThreadName());
 		this.incomingConnectionsQueue = Queues.newLinkedBlockingQueue(serverThreadConfiguration.getNewClientsQueueSize());
 		this.clientSelector = Selector.open();
 	}
 
 	public void registerClient(SocketChannel newClient) throws ClientRejectedException {
-		ensureThreadIsRunning();
-
 		try {
 			final boolean accepted = incomingConnectionsQueue.offer(newClient, serverThreadConfiguration.getNewClientRegisterTimeout(), TimeUnit.MILLISECONDS);
 			if(!accepted) {
-				throw new ClientRejectedException("Client not accepted by thread " + getName() + " waiting queue size " + incomingConnectionsQueue.size());
+				throw new ClientRejectedException("Client not accepted by thread " + Thread.currentThread().getName() +
+						" waiting queue size " + incomingConnectionsQueue.size());
 			} else {
-				try {
-					clientHandler.onNewClient(newClient);
-				} catch (Exception ex) {
-					log.warn("Client handler failed to process new client registration", ex);
-				}
 				clientSelector.wakeup();
 			}
 		} catch (InterruptedException e) {
@@ -62,36 +57,17 @@ public class ConnectionPool extends Thread {
 		}
 	}
 
-	private void ensureThreadIsRunning() throws ClientRejectedException {
-		if(!isWorking) {
-			throw new ClientRejectedException("Thread " + getName() + " already stopped");
-		}
-	}
-
-	public void shutdown() throws IOException {
-		isWorking = false;
-		clientSelector.close();
-		clientSelector.wakeup();
-	}
-
-	public boolean isWorking() {
-		return isWorking;
-	}
-
 	@Override
 	public void run() {
-		isWorking = true;
-		while (isWorking) {
-			try {
-				clientSelector.select(1000L);
-			} catch (IOException e) {
-				log.warn("Can not select new client");
-			}
-
-			checkAndRegisterNewClients();
-
-			processIncomingData(clientSelector.selectedKeys().iterator());
+		try {
+			clientSelector.select(1000L);
+		} catch (IOException e) {
+			log.warn("Can not select new client");
 		}
+
+		checkAndRegisterNewClients();
+
+		processIncomingData(clientSelector.selectedKeys().iterator());
 	}
 
 	private void checkAndRegisterNewClients() {
@@ -105,10 +81,19 @@ public class ConnectionPool extends Thread {
 		newClients.forEach(channel -> {
 			try {
 				channel.configureBlocking(false);
-				channel.register(
+				final SelectionKey selectionKey = channel.register(
 						clientSelector,
-						selectionOperation,
-						new ClientContext());
+						selectionOperation);
+				final ClientConnection clientConnection = connectionFactory.newConnection(selectionKey);
+
+				selectionKey.attach(clientConnection);
+
+				try {
+					clientHandler.onNewClientConnection(clientConnection);
+				} catch (Exception ex) {
+					log.warn("Client handler failed to process new client registration", ex);
+					clientConnection.setBroken(ex);
+				}
 			} catch (IOException e) {
 				log.debug("Client connection closed", e);
 			}
