@@ -9,7 +9,7 @@ import java.nio.channels.SelectionKey;
  * Date: 12.04.14
  * Time: 14:49
  */
-public class ClientConnectionFactory {
+class ClientConnectionFactory {
 	final ConnectionsRegistry connectionsRegistry;
 
 	public ClientConnectionFactory(ConnectionsRegistry connectionsRegistry) {

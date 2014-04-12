@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * Date: 06.04.14
  * Time: 18:10
  */
-public class ConnectionPool implements RunnableTask {
+class ConnectionPool implements RunnableTask {
 	private static final Logger log = LoggerFactory.getLogger(ConnectionPool.class);
 
 	private final int selectionOperation;

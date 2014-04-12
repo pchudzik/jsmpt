@@ -14,7 +14,7 @@ public class ClientConnection {
 
 	private Throwable brokenReason;
 
-	public ClientConnection(SelectionKey selectionKey) {
+	ClientConnection(SelectionKey selectionKey) {
 		this.selectionKey = selectionKey;
 	}
 

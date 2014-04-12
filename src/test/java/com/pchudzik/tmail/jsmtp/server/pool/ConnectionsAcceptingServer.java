@@ -1,6 +1,4 @@
-package com.pchudzik.tmail.jsmtp.server.pool.helper;
-
-import com.pchudzik.tmail.jsmtp.server.pool.ConnectionPool;
+package com.pchudzik.tmail.jsmtp.server.pool;
 
 import java.io.Closeable;
 import java.io.IOException;

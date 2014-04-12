@@ -2,8 +2,6 @@ package com.pchudzik.tmail.jsmtp.server.pool;
 
 import com.pchudzik.tmail.jsmtp.server.ClientRejectedException;
 import com.pchudzik.tmail.jsmtp.server.common.StoppableThread;
-import com.pchudzik.tmail.jsmtp.server.pool.helper.ConnectionsAcceptingServer;
-import com.pchudzik.tmail.jsmtp.server.pool.helper.SocketChannelDataReader;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableObject;
 import org.testng.annotations.Test;

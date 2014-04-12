@@ -1,4 +1,4 @@
-package com.pchudzik.tmail.jsmtp.server.pool.helper;
+package com.pchudzik.tmail.jsmtp.server.pool;
 
 import java.io.IOException;
 import java.io.Reader;
