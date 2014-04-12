@@ -53,7 +53,7 @@ public class ConnectionsRegistryTest {
 
 
 		assertThat(registry.getActiveClientsCount()).isEqualTo(0);
-		verify(validClientConnection, times(1)).timeout();
+		verify(validClientConnection, times(1)).close();
 	}
 
 	@Test

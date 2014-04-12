@@ -1,5 +1,7 @@
 package com.pchudzik.tmail.jsmtp.server.pool;
 
+import com.pchudzik.tmail.jsmtp.server.ClientRejectedException;
+
 import java.nio.channels.SelectionKey;
 
 /**
@@ -8,7 +10,15 @@ import java.nio.channels.SelectionKey;
  * Time: 14:49
  */
 public class ClientConnectionFactory {
-	public ClientConnection newConnection(SelectionKey selectionKey) {
-		return null;
+	final ConnectionsRegistry connectionsRegistry;
+
+	public ClientConnectionFactory(ConnectionsRegistry connectionsRegistry) {
+		this.connectionsRegistry = connectionsRegistry;
+	}
+
+	public ClientConnection newConnection(SelectionKey selectionKey) throws ClientRejectedException {
+		final ClientConnection newConnection = new ClientConnection(selectionKey);
+		connectionsRegistry.addNewClient(newConnection);
+		return newConnection;
 	}
 }

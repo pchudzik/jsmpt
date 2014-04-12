@@ -1,6 +1,8 @@
 package com.pchudzik.tmail.jsmtp.server.pool;
 
 import java.io.IOException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
 
 /**
  * User: pawel
@@ -8,22 +10,32 @@ import java.io.IOException;
  * Time: 13:41
  */
 public class ClientConnection {
-	public void close() throws IOException {
+	private final SelectionKey selectionKey;
 
+	private Throwable brokenReason;
+
+	public ClientConnection(SelectionKey selectionKey) {
+		this.selectionKey = selectionKey;
+	}
+
+	public void close() throws IOException {
+		selectionKey.cancel();
+		selectionKey.channel().close();
 	}
 
 	public boolean isValid() {
-		return false;
+		return brokenReason != null || !selectionKey.isValid();
 	}
 
 	public long getLastHeartbeat() {
 		return 0;
 	}
 
-	public void timeout() throws IOException {
-
+	public void setBroken(Throwable reason) {
+		this.brokenReason = reason;
 	}
 
-	public void setBroken(Throwable broken) {
+	public SocketChannel channel() {
+		return (SocketChannel)selectionKey.channel();
 	}
 }

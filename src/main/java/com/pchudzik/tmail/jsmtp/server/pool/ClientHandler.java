@@ -1,8 +1,6 @@
 package com.pchudzik.tmail.jsmtp.server.pool;
 
 import java.io.IOException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.SocketChannel;
 
 /**
  * User: pawel
@@ -13,5 +11,5 @@ import java.nio.channels.SocketChannel;
 interface ClientHandler {
 	default void onNewClientConnection(ClientConnection newClient) throws IOException {}
 
-	void processClient(SelectionKey selectionKey) throws IOException;
+	void processClient(ClientConnection clientConnection) throws IOException;
 }

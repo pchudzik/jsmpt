@@ -53,8 +53,9 @@ public class ConnectionPoolTest {
 		final Semaphore receivedDataSemaphore = new Semaphore(1);
 		receivedDataSemaphore.drainPermits();	//no go with test until data is received
 
-		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ConnectionPoolConfiguration("reading server"), clientConnectionFactory, handler -> {
-			try (Reader userDataReader = new SocketChannelDataReader((SocketChannel) handler.channel())) {
+		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(mock(ConnectionsRegistry.class));
+		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ConnectionPoolConfiguration("reading server"), connectionFactory, handler -> {
+			try (Reader userDataReader = new SocketChannelDataReader(handler.channel())) {
 				receivedString.setValue(IOUtils.toString(userDataReader));
 				receivedDataSemaphore.release();	//synchronize data receiving between threads
 			} catch (Exception ex) {
@@ -102,7 +103,7 @@ public class ConnectionPoolTest {
 			}
 
 			@Override
-			public void processClient(SelectionKey selectionKey) {
+			public void processClient(ClientConnection clientConnection) {
 				//nothing
 			}
 		};
@@ -129,7 +130,7 @@ public class ConnectionPoolTest {
 	private ClientHandler failingClientHandler() {
 		return new ClientHandler() {
 			@Override
-			public void processClient(SelectionKey selectionKey) {
+			public void processClient(ClientConnection clientConnection) {
 				throw new RuntimeException();
 			}
 

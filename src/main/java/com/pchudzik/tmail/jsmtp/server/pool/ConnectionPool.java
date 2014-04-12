@@ -84,15 +84,21 @@ public class ConnectionPool implements RunnableTask {
 				final SelectionKey selectionKey = channel.register(
 						clientSelector,
 						selectionOperation);
-				final ClientConnection clientConnection = connectionFactory.newConnection(selectionKey);
-
-				selectionKey.attach(clientConnection);
-
 				try {
-					clientHandler.onNewClientConnection(clientConnection);
-				} catch (Exception ex) {
-					log.warn("Client handler failed to process new client registration", ex);
-					clientConnection.setBroken(ex);
+					final ClientConnection clientConnection = connectionFactory.newConnection(selectionKey);
+
+					selectionKey.attach(clientConnection);
+
+					try {
+						clientHandler.onNewClientConnection(clientConnection);
+					} catch (Exception ex) {
+						log.info("Client handler failed to process new client registration", ex);
+						clientConnection.setBroken(ex);
+					}
+				} catch (ClientRejectedException ex) {
+					log.info("Client not accepted", ex);
+					selectionKey.channel().close();
+					selectionKey.cancel();
 				}
 			} catch (IOException e) {
 				log.debug("Client connection closed", e);
@@ -104,7 +110,7 @@ public class ConnectionPool implements RunnableTask {
 		while (keyIterator.hasNext()) {
 			final SelectionKey selectionKey = keyIterator.next();
 			try {
-				clientHandler.processClient(selectionKey);
+				clientHandler.processClient((ClientConnection)selectionKey.attachment());
 			} catch (Exception ex) {
 				log.warn("Unable to process client data", ex);
 			} finally {
