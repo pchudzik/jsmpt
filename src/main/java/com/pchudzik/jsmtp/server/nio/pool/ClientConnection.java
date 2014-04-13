@@ -38,4 +38,8 @@ public class ClientConnection {
 	public SocketChannel channel() {
 		return (SocketChannel)selectionKey.channel();
 	}
+
+	public void write(String message) {
+
+	}
 }
