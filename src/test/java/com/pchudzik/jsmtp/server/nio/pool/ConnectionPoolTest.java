@@ -1,5 +1,6 @@
 package com.pchudzik.jsmtp.server.nio.pool;
 
+import com.pchudzik.jsmtp.common.FakeTimeProvider;
 import com.pchudzik.jsmtp.common.StoppableThread;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableObject;
@@ -50,7 +51,7 @@ public class ConnectionPoolTest {
 		final Semaphore receivedDataSemaphore = new Semaphore(1);
 		receivedDataSemaphore.drainPermits();	//no go with test until data is received
 
-		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(mock(ConnectionsRegistry.class));
+		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(new FakeTimeProvider(), mock(ConnectionsRegistry.class));
 		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ConnectionPoolConfiguration("reading server"), connectionFactory, handler -> {
 			try (Reader userDataReader = new SocketChannelDataReader(handler.channel())) {
 				receivedString.setValue(IOUtils.toString(userDataReader));

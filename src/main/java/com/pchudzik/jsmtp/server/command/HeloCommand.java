@@ -2,6 +2,8 @@ package com.pchudzik.jsmtp.server.command;
 
 import com.pchudzik.jsmtp.server.nio.pool.ClientConnection;
 
+import java.io.IOException;
+
 /**
  * User: pawel
  * Date: 13.04.14
@@ -9,7 +11,7 @@ import com.pchudzik.jsmtp.server.nio.pool.ClientConnection;
  */
 class HeloCommand implements Command {
 	@Override
-	public void executeCommand(ClientConnection clientConnection) {
-		clientConnection.write("hello");
+	public void executeCommand(ClientConnection clientConnection) throws IOException {
+		clientConnection.getWriter().write("hello");
 	}
 }
