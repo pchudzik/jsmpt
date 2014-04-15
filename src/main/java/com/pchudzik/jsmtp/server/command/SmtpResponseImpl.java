@@ -5,6 +5,8 @@ package com.pchudzik.jsmtp.server.command;
  */
 public enum SmtpResponseImpl {
 	OK(250),
+	CLOSE(221),
+
 	SERVICE_UNAVAILABLE(421);
 
 	private final int code;
