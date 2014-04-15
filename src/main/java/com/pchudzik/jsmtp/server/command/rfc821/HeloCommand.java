@@ -26,12 +26,12 @@ class HeloCommand implements CommandAction {
 		if(domain.equals(serverConfiguration.getListenAddress())) {
 			performCommand(clientConnection, () -> {
 				clientConnection.getWriter()
-						.write(SmtpResponseImpl.OK + " HELO " + domain);
+						.write(SmtpResponseImpl.OK + " " + domain);
 			});
 		} else {
 			performCommand(clientConnection, () -> {
 				clientConnection.getWriter()
-						.write(SmtpResponseImpl.SERVICE_UNAVAILABLE + " " + domain + " ");
+						.write(SmtpResponseImpl.SERVICE_UNAVAILABLE + " " + domain);
 				clientConnection.close();
 			});
 		}

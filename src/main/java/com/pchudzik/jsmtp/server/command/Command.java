@@ -8,7 +8,7 @@ package com.pchudzik.jsmtp.server.command;
 public class Command {
 	private final String commandString;
 
-	Command(String commandString) {
+	public Command(String commandString) {
 		this.commandString = commandString;
 	}
 
