@@ -8,10 +8,10 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.StringWriter;
 
+import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newWriterForClient;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by pawel on 15.04.14.
@@ -42,11 +42,5 @@ public class HeloCommandTest {
 		assertThat(writer.getBuffer().toString())
 				.isEqualTo("421 " + invalidDomain);
 		verify(clientConnection).close();
-	}
-
-	private StringWriter newWriterForClient(ClientConnection clientConnection) {
-		final StringWriter writer = new StringWriter();
-		when(clientConnection.getWriter()).thenReturn(writer);
-		return writer;
 	}
 }
