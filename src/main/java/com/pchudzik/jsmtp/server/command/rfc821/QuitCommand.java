@@ -3,7 +3,7 @@ package com.pchudzik.jsmtp.server.command.rfc821;
 import com.pchudzik.jsmtp.server.ServerConfiguration;
 import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.command.CommandAction;
-import com.pchudzik.jsmtp.server.command.SmtpResponseImpl;
+import com.pchudzik.jsmtp.server.command.SmtpResponse;
 import com.pchudzik.jsmtp.server.nio.pool.ClientConnection;
 
 import java.io.IOException;
@@ -22,7 +22,7 @@ class QuitCommand implements CommandAction {
 	public void executeCommand(ClientConnection clientConnection, Command command) throws IOException {
 		performCommand(clientConnection, () -> {
 			clientConnection.getWriter()
-					.write(SmtpResponseImpl.CLOSE + " " + serverConfiguration.getListenAddress() + " Service closing transmission channel");
+					.write(SmtpResponse.CLOSE + " " + serverConfiguration.getListenAddress() + " Service closing transmission channel");
 			clientConnection.close();
 		});
 	}

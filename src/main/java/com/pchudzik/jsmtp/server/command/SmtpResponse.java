@@ -3,7 +3,7 @@ package com.pchudzik.jsmtp.server.command;
 /**
  * Created by pawel on 14.04.14.
  */
-public enum SmtpResponseImpl {
+public enum SmtpResponse {
 	OK(250),
 	CLOSE(221),
 
@@ -11,7 +11,7 @@ public enum SmtpResponseImpl {
 
 	private final int code;
 
-	private SmtpResponseImpl(int code) {
+	private SmtpResponse(int code) {
 		this.code = code;
 	}
 

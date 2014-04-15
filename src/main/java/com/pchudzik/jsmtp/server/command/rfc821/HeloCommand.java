@@ -3,7 +3,7 @@ package com.pchudzik.jsmtp.server.command.rfc821;
 import com.pchudzik.jsmtp.server.ServerConfiguration;
 import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.command.CommandAction;
-import com.pchudzik.jsmtp.server.command.SmtpResponseImpl;
+import com.pchudzik.jsmtp.server.command.SmtpResponse;
 import com.pchudzik.jsmtp.server.nio.pool.ClientConnection;
 
 import java.io.IOException;
@@ -26,12 +26,12 @@ class HeloCommand implements CommandAction {
 		if(domain.equals(serverConfiguration.getListenAddress())) {
 			performCommand(clientConnection, () -> {
 				clientConnection.getWriter()
-						.write(SmtpResponseImpl.OK + " " + domain);
+						.write(SmtpResponse.OK + " " + domain);
 			});
 		} else {
 			performCommand(clientConnection, () -> {
 				clientConnection.getWriter()
-						.write(SmtpResponseImpl.SERVICE_UNAVAILABLE + " " + domain);
+						.write(SmtpResponse.SERVICE_UNAVAILABLE + " " + domain);
 				clientConnection.close();
 			});
 		}
