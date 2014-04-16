@@ -2,7 +2,7 @@ package com.pchudzik.jsmtp.server.command.rfc821;
 
 import com.pchudzik.jsmtp.server.ServerConfiguration;
 import com.pchudzik.jsmtp.server.command.Command;
-import com.pchudzik.jsmtp.server.nio.pool.ClientConnection;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import org.testng.annotations.Test;
 
 import java.io.IOException;

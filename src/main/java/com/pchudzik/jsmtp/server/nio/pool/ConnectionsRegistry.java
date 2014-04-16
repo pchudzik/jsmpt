@@ -5,6 +5,7 @@ import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import com.pchudzik.jsmtp.common.RunnableTask;
 import com.pchudzik.jsmtp.common.TimeProvider;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * Date: 10.04.14
  * Time: 18:47
  */
-class ConnectionsRegistry implements RunnableTask {
+public class ConnectionsRegistry implements RunnableTask {
 	private static final Logger log = LoggerFactory.getLogger(ConnectionsRegistry.class);
 
 	private final TimeProvider timeProvider;

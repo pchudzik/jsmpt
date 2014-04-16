@@ -1,6 +1,8 @@
-package com.pchudzik.jsmtp.server.nio.pool;
+package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import com.pchudzik.jsmtp.common.TimeProvider;
+import com.pchudzik.jsmtp.server.nio.pool.ClientRejectedException;
+import com.pchudzik.jsmtp.server.nio.pool.ConnectionsRegistry;
 
 import java.nio.channels.SelectionKey;
 
@@ -9,7 +11,7 @@ import java.nio.channels.SelectionKey;
  * Date: 12.04.14
  * Time: 14:49
  */
-class ClientConnectionFactory {
+public class ClientConnectionFactory {
 	final TimeProvider timeProvider;
 	final ConnectionsRegistry connectionsRegistry;
 
@@ -19,7 +21,10 @@ class ClientConnectionFactory {
 	}
 
 	public ClientConnection newConnection(SelectionKey selectionKey) throws ClientRejectedException {
-		final ClientConnection newConnection = new ClientConnection(timeProvider, selectionKey);
+		final ClientConnection newConnection = new ClientConnection(
+				timeProvider,
+				selectionKey,
+				new ClientContext());
 		connectionsRegistry.addNewClient(newConnection);
 		return newConnection;
 	}

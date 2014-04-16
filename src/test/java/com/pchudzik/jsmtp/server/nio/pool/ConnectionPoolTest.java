@@ -2,6 +2,8 @@ package com.pchudzik.jsmtp.server.nio.pool;
 
 import com.pchudzik.jsmtp.common.FakeTimeProvider;
 import com.pchudzik.jsmtp.common.StoppableThread;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableObject;
 import org.testng.annotations.Test;

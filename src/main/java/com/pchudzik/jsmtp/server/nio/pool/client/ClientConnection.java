@@ -1,4 +1,4 @@
-package com.pchudzik.jsmtp.server.nio.pool;
+package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import com.pchudzik.jsmtp.common.TimeProvider;
 
@@ -19,12 +19,15 @@ public class ClientConnection {
 	private final TimeProvider timeProvider;
 	private final SelectionKey selectionKey;
 
-	private Throwable brokenReason;
+	private final ClientContext clientContext;
+
+	private volatile Throwable brokenReason;
 	private volatile long heartbeat;
 
-	ClientConnection(TimeProvider timeProvider, SelectionKey selectionKey) {
+	ClientConnection(TimeProvider timeProvider, SelectionKey selectionKey, ClientContext clientContext) {
 		this.timeProvider = timeProvider;
 		this.selectionKey = selectionKey;
+		this.clientContext = clientContext;
 	}
 
 	public void close() throws IOException {
@@ -58,5 +61,9 @@ public class ClientConnection {
 
 	public Writer getWriter() {
 		return getWriter(defaultEncoding);
+	}
+
+	public ClientContext getClientContext() {
+		return clientContext;
 	}
 }

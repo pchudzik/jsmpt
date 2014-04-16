@@ -1,4 +1,4 @@
-package com.pchudzik.jsmtp.server.nio.pool;
+package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import java.io.IOException;
 import java.io.Writer;

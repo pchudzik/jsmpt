@@ -1,6 +1,7 @@
 package com.pchudzik.jsmtp.server.nio.pool;
 
 import com.pchudzik.jsmtp.common.FakeTimeProvider;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

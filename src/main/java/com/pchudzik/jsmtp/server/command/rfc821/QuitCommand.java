@@ -4,7 +4,7 @@ import com.pchudzik.jsmtp.server.ServerConfiguration;
 import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.command.CommandAction;
 import com.pchudzik.jsmtp.server.command.SmtpResponse;
-import com.pchudzik.jsmtp.server.nio.pool.ClientConnection;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 import java.io.IOException;
 

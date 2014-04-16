@@ -3,6 +3,8 @@ package com.pchudzik.jsmtp.server.nio.pool;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.pchudzik.jsmtp.common.RunnableTask;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -7,11 +7,11 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import java.io.IOException;
 
 /**
- * Created by pawel on 15.04.14.
+ * Created by pawel on 16.04.14.
  */
-class NoopCommand implements CommandAction {
+public class MailCommand implements CommandAction {
 	@Override
 	public void executeCommand(ClientConnection clientConnection, Command command) throws IOException {
-		//noop
+
 	}
 }
