@@ -55,7 +55,7 @@ public class ConnectionPoolTest {
 
 		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(new FakeTimeProvider(), mock(ConnectionsRegistry.class));
 		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ConnectionPoolConfiguration("reading server"), connectionFactory, handler -> {
-			try (Reader userDataReader = new SocketChannelDataReader(handler.channel())) {
+			try (Reader userDataReader = handler.getReader()) {
 				receivedString.setValue(IOUtils.toString(userDataReader));
 				receivedDataSemaphore.release();	//synchronize data receiving between threads
 			} catch (Exception ex) {

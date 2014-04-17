@@ -3,6 +3,7 @@ package com.pchudzik.jsmtp.server.nio.pool.client;
 import com.pchudzik.jsmtp.common.TimeProvider;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -61,6 +62,14 @@ public class ClientConnection {
 
 	public Writer getWriter() {
 		return getWriter(defaultEncoding);
+	}
+
+	public Reader getReader(String charset) {
+		return new ClientChannelReader(this, Charset.forName(charset));
+	}
+
+	public Reader getReader() {
+		return getReader(defaultEncoding);
 	}
 
 	public ClientContext getClientContext() {

@@ -12,8 +12,8 @@ import java.nio.channels.SelectionKey;
  * Time: 14:49
  */
 public class ClientConnectionFactory {
-	final TimeProvider timeProvider;
-	final ConnectionsRegistry connectionsRegistry;
+	protected final TimeProvider timeProvider;
+	protected final ConnectionsRegistry connectionsRegistry;
 
 	public ClientConnectionFactory(TimeProvider timeProvider, ConnectionsRegistry connectionsRegistry) {
 		this.timeProvider = timeProvider;
