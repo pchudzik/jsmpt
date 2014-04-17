@@ -12,12 +12,14 @@ import java.nio.channels.SelectionKey;
  * Time: 14:49
  */
 public class ClientConnectionFactory {
-	protected final TimeProvider timeProvider;
-	protected final ConnectionsRegistry connectionsRegistry;
+	final TimeProvider timeProvider;
+	final ConnectionsRegistry connectionsRegistry;
+	final NewClientProcessor newClientProcessor;
 
-	public ClientConnectionFactory(TimeProvider timeProvider, ConnectionsRegistry connectionsRegistry) {
+	public ClientConnectionFactory(TimeProvider timeProvider, ConnectionsRegistry connectionsRegistry, NewClientProcessor clientProcessor) {
 		this.timeProvider = timeProvider;
 		this.connectionsRegistry = connectionsRegistry;
+		this.newClientProcessor = clientProcessor;
 	}
 
 	public ClientConnection newConnection(SelectionKey selectionKey) throws ClientRejectedException {
@@ -25,7 +27,13 @@ public class ClientConnectionFactory {
 				timeProvider,
 				selectionKey,
 				new ClientContext());
+		newClientProcessor.processNewClient(newConnection);
 		connectionsRegistry.addNewClient(newConnection);
 		return newConnection;
+	}
+
+	@FunctionalInterface
+	public interface NewClientProcessor {
+		void processNewClient(ClientConnection newConnection) throws ClientRejectedException;
 	}
 }

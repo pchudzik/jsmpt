@@ -53,7 +53,7 @@ public class ConnectionPoolTest {
 		final Semaphore receivedDataSemaphore = new Semaphore(1);
 		receivedDataSemaphore.drainPermits();	//no go with test until data is received
 
-		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(new FakeTimeProvider(), mock(ConnectionsRegistry.class));
+		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(new FakeTimeProvider(), mock(ConnectionsRegistry.class), newClient -> {});
 		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ConnectionPoolConfiguration("reading server"), connectionFactory, handler -> {
 			try (Reader userDataReader = handler.getReader()) {
 				receivedString.setValue(IOUtils.toString(userDataReader));

@@ -1,7 +1,7 @@
-package com.pchudzik.jsmtp.server.nio.pool;
+package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import com.pchudzik.jsmtp.common.FakeTimeProvider;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
+import com.pchudzik.jsmtp.server.nio.pool.ConnectionsRegistry;
 
 import static org.mockito.Mockito.mock;
 
@@ -12,7 +12,11 @@ import static org.mockito.Mockito.mock;
  */
 public class TestClientConnectionFactory extends ClientConnectionFactory {
 	public TestClientConnectionFactory() {
-		super(new FakeTimeProvider(), mock(ConnectionsRegistry.class));
+		this(newConnection -> {});
+	}
+
+	public TestClientConnectionFactory(NewClientProcessor processor) {
+		super(new FakeTimeProvider(), mock(ConnectionsRegistry.class), processor);
 	}
 
 	public FakeTimeProvider getTimeProvider() {

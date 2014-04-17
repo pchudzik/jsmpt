@@ -1,6 +1,5 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
-import com.pchudzik.jsmtp.server.nio.pool.TestClientConnectionFactory;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
