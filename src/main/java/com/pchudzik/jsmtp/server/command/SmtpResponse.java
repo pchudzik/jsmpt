@@ -7,7 +7,10 @@ public enum SmtpResponse {
 	OK(250),
 	CLOSE(221),
 
-	SERVICE_UNAVAILABLE(421);
+	SERVICE_UNAVAILABLE(421),
+
+	MAIL_BOX_NOT_AVAILABLE(553)
+	;
 
 	private final int code;
 
