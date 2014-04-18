@@ -5,6 +5,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -58,25 +59,9 @@ public class ClientChannelReaderTest {
 	@Test
 	//some utf characters are longer then one byte.
 	//for example char = 'ą' is two bytes.
-	public void shouldFillBufferWithAllAvailableData() throws Exception {
-		final MutableInt bytesPosition = new MutableInt(0);
+	public void shouldFillBufferWithUtf8Data() throws Exception {
 		final String withUtfString = "ąłó";
-		final String fullString = withUtfString + " other part";
-		final byte [] fullClientData = fullString.getBytes(utf8Charset);
-
-		when(socketChannelMock.read(any(ByteBuffer.class))).thenAnswer(invocation -> {
-			final ByteBuffer buffer = (ByteBuffer) invocation.getArguments()[0];
-			final int initialPosition = bytesPosition.intValue();
-			byte [] result = Arrays.copyOfRange(
-					fullClientData,
-					initialPosition,
-					initialPosition + buffer.limit());
-
-			buffer.put(result);
-			bytesPosition.add(result.length);
-
-			return result.length;
-		});
+		mockReaderToReturn(withUtfString + " other part");
 
 		final ClientChannelReader reader = new ClientChannelReader(
 				clientConnectionFactory.newConnection(selectionKeyMock),
@@ -86,5 +71,46 @@ public class ClientChannelReaderTest {
 		reader.read(buffer);
 
 		assertThat(new String(buffer)).isEqualTo(withUtfString);
+	}
+
+	@Test
+	public void shouldFillBufferWithSimpleData() throws Exception {
+		final String simpleString = "ala ma kota";
+		mockReaderToReturn(simpleString);
+
+		final ClientChannelReader reader = new ClientChannelReader(
+				clientConnectionFactory.newConnection(selectionKeyMock),
+				utf8Charset);
+
+		final char [] buffer = new char[simpleString.length()];
+		reader.read(buffer);
+
+		assertThat(new String(buffer)).isEqualTo(simpleString);
+	}
+
+	private void mockReaderToReturn(String resultString) throws IOException {
+		final MutableInt bytesPosition = new MutableInt(0);
+
+		final byte [] fullClientData = resultString.getBytes(utf8Charset);
+
+		when(socketChannelMock.read(any(ByteBuffer.class))).thenAnswer(invocation -> {
+			final ByteBuffer buffer = (ByteBuffer) invocation.getArguments()[0];
+			final int initialPosition = bytesPosition.intValue();
+
+			int length = initialPosition + buffer.limit();
+			if(length > fullClientData.length) {
+				length = fullClientData.length;
+			}
+
+			byte [] result = Arrays.copyOfRange(
+					fullClientData,
+					initialPosition,
+					length);
+
+			buffer.put(result);
+			bytesPosition.add(result.length);
+
+			return result.length;
+		});
 	}
 }

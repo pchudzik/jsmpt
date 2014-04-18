@@ -34,7 +34,9 @@ class ClientChannelReader extends Reader {
 			}
 
 			buffer.flip();
-			final CharBuffer charBuffer = charset.decode(buffer).get(cbuf, off, len);
+			final CharBuffer charBuffer = charset.decode(buffer);
+			charBuffer.get(cbuf, off, charBuffer.length());
+			charBuffer.flip();
 
 			return charBuffer.length();
 		} catch (IOException ex) {
