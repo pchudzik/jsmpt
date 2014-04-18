@@ -3,7 +3,11 @@ package com.pchudzik.jsmtp.server.nio.pool.client;
 import com.pchudzik.jsmtp.common.FakeTimeProvider;
 import com.pchudzik.jsmtp.server.nio.pool.ConnectionsRegistry;
 
+import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
+
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * User: pawel
@@ -25,5 +29,19 @@ public class TestClientConnectionFactory extends ClientConnectionFactory {
 
 	public ConnectionsRegistry getConnectionRegistry() {
 		return connectionsRegistry;
+	}
+
+	public SocketChannel mockSocketChannel() {
+		return mock(SocketChannel.class);
+	}
+
+	public SelectionKey mockSelectionKeyWithChannel() {
+		return mockSelectionKeyWithChannel(mockSocketChannel());
+	}
+
+	public SelectionKey mockSelectionKeyWithChannel(SocketChannel socketChannel) {
+		final SelectionKey selectionKey = mock(SelectionKey.class);
+		when(selectionKey.channel()).thenReturn(socketChannel);
+		return selectionKey;
 	}
 }

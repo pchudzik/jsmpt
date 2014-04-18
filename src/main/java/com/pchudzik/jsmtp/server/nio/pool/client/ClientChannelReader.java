@@ -3,6 +3,7 @@ package com.pchudzik.jsmtp.server.nio.pool.client;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 /**
@@ -26,22 +27,16 @@ class ClientChannelReader extends Reader {
 		}
 
 		try {
-			final ByteBuffer buffer = ByteBuffer.allocate(len);
+			final ByteBuffer buffer = ByteBuffer.allocate(len * Character.BYTES);
 			final int readCount = clientConnection.channel().read(buffer);
-			if (readCount == -1) {
+			if (readCount <= -1) {
 				return -1;
 			}
 
-			final byte [] readBytes = new byte[readCount];
+			buffer.flip();
+			final CharBuffer charBuffer = charset.decode(buffer).get(cbuf, off, len);
 
-			buffer.rewind();
-			buffer.get(readBytes);
-
-			final String readDataString = new String(readBytes, charset);
-			final int readDataCount = readDataString.length();
-			readDataString.getChars(0, readDataCount, cbuf, off);
-
-			return readDataCount;
+			return charBuffer.length();
 		} catch (IOException ex) {
 			clientConnection.setBroken(ex);
 			throw ex;

@@ -33,10 +33,8 @@ public class ClientChannelWriterTest {
 
 	@BeforeMethod
 	public void setupClientConnection() throws Exception {
-		socketChannel = mock(SocketChannel.class);
-		selectionKeyMock = mock(SelectionKey.class);
-		when(selectionKeyMock.channel()).thenReturn(socketChannel);
-
+		socketChannel = connectionFactory.mockSocketChannel();
+		selectionKeyMock = connectionFactory.mockSelectionKeyWithChannel(socketChannel);
 		clientConnection = connectionFactory.newConnection(selectionKeyMock);
 	}
 
