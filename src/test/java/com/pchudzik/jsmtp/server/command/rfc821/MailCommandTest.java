@@ -1,7 +1,6 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
-import com.pchudzik.jsmtp.server.command.Command;
-import com.pchudzik.jsmtp.server.command.SmtpResponse;
+import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.ClientRejectedException;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
@@ -9,11 +8,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.mail.internet.InternetAddress;
-import java.io.StringWriter;
 
+import static com.googlecode.catchexception.CatchException.catchException;
+import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newTransactionForClient;
-import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newWriterForClient;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -27,14 +25,12 @@ public class MailCommandTest {
 	final MailCommand mailCommand = new MailCommand();
 
 	private ClientConnection clientConnection;
-	private StringWriter writer;
 	private MailTransaction mailTx;
 
 	@BeforeMethod
 	public void setupClient() throws ClientRejectedException {
 		clientConnection = mock(ClientConnection.class);
 		mailTx = newTransactionForClient(clientConnection);
-		writer = newWriterForClient(clientConnection);
 	}
 
 	@Test
@@ -46,26 +42,30 @@ public class MailCommandTest {
 
 	@Test
 	public void shouldRejectCommandOnInvalidFromAddress() throws Exception {
-		mailCommand.executeCommand(clientConnection, new Command("mail from: <wrong address>"));
+		catchException(mailCommand).executeCommand(clientConnection, new Command("mail from: <wrong address>"));
 
-		assertThat(writer.getBuffer().toString())
-				.startsWith(SmtpResponse.MAIL_BOX_NOT_AVAILABLE.toString());
+		CommandExecutionExceptionAssert.assertThat(caughtException())
+				.isNotCritical()
+				.hasSmtpResponse(SmtpResponse.MAIL_BOX_NOT_AVAILABLE)
+				.hasMessage("Invalid email address");
 	}
 
 	@Test
 	public void shouldRejectCommandOnMissingFromAddress() throws Exception {
-		mailCommand.executeCommand(clientConnection, new Command("mail from:"));
+		catchException(mailCommand).executeCommand(clientConnection, new Command("mail from:"));
 
-		assertThat(writer.getBuffer().toString())
-				.startsWith(SmtpResponse.MAIL_BOX_NOT_AVAILABLE.toString());
+		CommandExecutionExceptionAssert.assertThat(caughtException())
+				.isNotCritical()
+				.hasSmtpResponse(SmtpResponse.MAIL_BOX_NOT_AVAILABLE)
+				.hasMessage("Invalid email address");
 	}
 
 	@Test
 	public void shouldSetEmailAddressInTransaction() throws Exception {
-		mailCommand.executeCommand(clientConnection, new Command("mail from: " + email));
+		CommandResponse response = mailCommand.executeCommand(clientConnection, new Command("mail from: " + email));
 
 		verify(mailTx).setFrom(new InternetAddress(email));
-		assertThat(writer.getBuffer().toString())
-				.startsWith(SmtpResponse.OK.toString());
+		CommandResponseAssert.assertThat(response)
+				.hasSmtpResponse(SmtpResponse.OK);
 	}
 }
