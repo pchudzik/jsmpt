@@ -9,7 +9,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.mail.internet.InternetAddress;
-import java.io.IOException;
 import java.io.StringWriter;
 
 import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newTransactionForClient;
@@ -46,7 +45,7 @@ public class MailCommandTest {
 	}
 
 	@Test
-	public void shouldRejectCommandOnInvalidFromAddress() throws IOException {
+	public void shouldRejectCommandOnInvalidFromAddress() throws Exception {
 		mailCommand.executeCommand(clientConnection, new Command("mail from: <wrong address>"));
 
 		assertThat(writer.getBuffer().toString())
@@ -54,7 +53,7 @@ public class MailCommandTest {
 	}
 
 	@Test
-	public void shouldRejectCommandOnMissingFromAddress() throws IOException {
+	public void shouldRejectCommandOnMissingFromAddress() throws Exception {
 		mailCommand.executeCommand(clientConnection, new Command("mail from:"));
 
 		assertThat(writer.getBuffer().toString())

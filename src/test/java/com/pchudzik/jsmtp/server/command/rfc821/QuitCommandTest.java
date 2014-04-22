@@ -5,7 +5,6 @@ import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.io.StringWriter;
 
 import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newWriterForClient;
@@ -18,7 +17,7 @@ import static org.mockito.Mockito.verify;
  */
 public class QuitCommandTest {
 	@Test
-	public void shouldCloseClientConnectionWithMessge() throws IOException {
+	public void shouldCloseClientConnectionWithMessge() throws Exception {
 		final String domain = "example.com";
 		final ClientConnection clientConnection = mock(ClientConnection.class);
 		final StringWriter writer = newWriterForClient(clientConnection);

@@ -2,6 +2,7 @@ package com.pchudzik.jsmtp.server.command.rfc821;
 
 import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.command.CommandAction;
+import com.pchudzik.jsmtp.server.command.CommandExecutionException;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 import java.io.IOException;
@@ -11,7 +12,7 @@ import java.io.IOException;
  */
 class NoopCommand implements CommandAction {
 	@Override
-	public void executeCommand(ClientConnection clientConnection, Command command) throws IOException {
+	public void executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException, IOException {
 		//noop
 	}
 }

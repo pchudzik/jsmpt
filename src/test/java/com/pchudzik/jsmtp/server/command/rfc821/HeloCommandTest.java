@@ -5,7 +5,6 @@ import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.io.StringWriter;
 
 import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newWriterForClient;
@@ -23,7 +22,7 @@ public class HeloCommandTest {
 			.setListenAddress(domainName));
 
 	@Test
-	public void shouldRespondWithHelloMessageOnValidDomain() throws IOException {
+	public void shouldRespondWithHelloMessageOnValidDomain() throws Exception {
 		final StringWriter writer = newWriterForClient(clientConnection);
 
 		heloCommand.executeCommand(clientConnection, new Command("helo " + domainName));
@@ -33,7 +32,7 @@ public class HeloCommandTest {
 	}
 
 	@Test
-	public void shouldCloseClientConnectionOnInvalidDomain() throws IOException {
+	public void shouldCloseClientConnectionOnInvalidDomain() throws Exception {
 		final String invalidDomain = "invalid-domain.com";
 		final StringWriter writer = newWriterForClient(clientConnection);
 
