@@ -20,9 +20,9 @@ import static org.mockito.Mockito.verify;
  * Date: 18.04.14
  * Time: 21:37
  */
-public class MailCommandTest {
+public class MailFromCommandTest {
 	final String email = "<somebody@example.com>";
-	final MailCommand mailCommand = new MailCommand();
+	final MailFromCommand mailFromCommand = new MailFromCommand();
 
 	private ClientConnection clientConnection;
 	private MailTransaction mailTx;
@@ -35,14 +35,14 @@ public class MailCommandTest {
 
 	@Test
 	public void shouldResetMailTransaction() throws Exception {
-		mailCommand.executeCommand(clientConnection, new Command("mail from: " + email));
+		mailFromCommand.executeCommand(clientConnection, new Command("mail from: " + email));
 
 		verify(mailTx).reset();
 	}
 
 	@Test
 	public void shouldRejectCommandOnInvalidFromAddress() throws Exception {
-		catchException(mailCommand).executeCommand(clientConnection, new Command("mail from: <wrong address>"));
+		catchException(mailFromCommand).executeCommand(clientConnection, new Command("mail from: <wrong address>"));
 
 		CommandExecutionExceptionAssert.assertThat(caughtException())
 				.isNotCritical()
@@ -52,7 +52,7 @@ public class MailCommandTest {
 
 	@Test
 	public void shouldRejectCommandOnMissingFromAddress() throws Exception {
-		catchException(mailCommand).executeCommand(clientConnection, new Command("mail from:"));
+		catchException(mailFromCommand).executeCommand(clientConnection, new Command("mail from:"));
 
 		CommandExecutionExceptionAssert.assertThat(caughtException())
 				.isNotCritical()
@@ -62,7 +62,7 @@ public class MailCommandTest {
 
 	@Test
 	public void shouldSetEmailAddressInTransaction() throws Exception {
-		CommandResponse response = mailCommand.executeCommand(clientConnection, new Command("mail from: " + email));
+		CommandResponse response = mailFromCommand.executeCommand(clientConnection, new Command("mail from: " + email));
 
 		verify(mailTx).setFrom(new InternetAddress(email));
 		CommandResponseAssert.assertThat(response)

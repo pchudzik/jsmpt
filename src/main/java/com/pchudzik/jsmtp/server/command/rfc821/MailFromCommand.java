@@ -12,7 +12,7 @@ import static com.pchudzik.jsmtp.server.command.CommandExecutionException.comman
 /**
  * Created by pawel on 16.04.14.
  */
-public class MailCommand implements CommandAction, MailConstans {
+public class MailFromCommand implements CommandAction, MailConstans {
 	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
 		final MailTransaction mailTx = clientConnection.getClientContext().<MailTransaction>getObject(mail).get();
