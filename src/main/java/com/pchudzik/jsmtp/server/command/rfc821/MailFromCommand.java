@@ -5,7 +5,6 @@ import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 
 import static com.pchudzik.jsmtp.server.command.CommandExecutionException.commandExecutionException;
 
@@ -19,7 +18,7 @@ public class MailFromCommand implements CommandAction, MailConstans {
 		mailTx.reset();
 
 		try {
-			mailTx.setFrom(getFromAddress(command.getCommandString()));
+			mailTx.setFrom(AddressExtractor.getAddress(command));
 			return new CommandResponse(SmtpResponse.OK, "OK");
 		} catch (AddressException ex) {
 			throw commandExecutionException(SmtpResponse.MAIL_BOX_NOT_AVAILABLE)
@@ -27,13 +26,5 @@ public class MailFromCommand implements CommandAction, MailConstans {
 					.cause(ex)
 					.build();
 		}
-	}
-
-	private InternetAddress getFromAddress(String command) throws AddressException {
-		String [] cmdWithArguments = command.split(":", 2);
-		if(cmdWithArguments.length < 2) {
-			throw new AddressException("Missing email address");
-		}
-		return new InternetAddress(cmdWithArguments[1]);
 	}
 }
