@@ -11,7 +11,7 @@ import static com.pchudzik.jsmtp.server.command.rfc821.MailTransactionUtils.getM
 /**
  * Created by pawel on 23.04.14.
  */
-public class RcptToCommand implements CommandAction, MailConstans {
+public class RcptToCommand implements CommandAction {
 	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
 		MailTransaction mailTx = getMailTransaction(clientConnection);

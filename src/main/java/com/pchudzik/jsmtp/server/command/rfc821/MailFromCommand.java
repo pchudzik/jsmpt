@@ -12,7 +12,7 @@ import static com.pchudzik.jsmtp.server.command.rfc821.MailTransactionUtils.getM
 /**
  * Created by pawel on 16.04.14.
  */
-public class MailFromCommand implements CommandAction, MailConstans {
+public class MailFromCommand implements CommandAction {
 	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
 		final MailTransaction mailTx = getMailTransaction(clientConnection);
