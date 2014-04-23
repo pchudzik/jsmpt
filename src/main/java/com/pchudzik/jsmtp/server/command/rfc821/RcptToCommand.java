@@ -6,13 +6,15 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 import javax.mail.internet.AddressException;
 
+import static com.pchudzik.jsmtp.server.command.rfc821.MailTransactionUtils.getMailTransaction;
+
 /**
  * Created by pawel on 23.04.14.
  */
 public class RcptToCommand implements CommandAction, MailConstans {
 	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
-		MailTransaction mailTx = clientConnection.getClientContext().<MailTransaction>getObject(mail).get();
+		MailTransaction mailTx = getMailTransaction(clientConnection);
 
 		try {
 			mailTx.addRecipient(AddressExtractor.getAddress(command));

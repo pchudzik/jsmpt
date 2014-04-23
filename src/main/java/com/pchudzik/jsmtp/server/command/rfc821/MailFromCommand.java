@@ -7,6 +7,7 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import javax.mail.internet.AddressException;
 
 import static com.pchudzik.jsmtp.server.command.CommandExecutionException.commandExecutionException;
+import static com.pchudzik.jsmtp.server.command.rfc821.MailTransactionUtils.getMailTransaction;
 
 /**
  * Created by pawel on 16.04.14.
@@ -14,7 +15,7 @@ import static com.pchudzik.jsmtp.server.command.CommandExecutionException.comman
 public class MailFromCommand implements CommandAction, MailConstans {
 	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
-		final MailTransaction mailTx = clientConnection.getClientContext().<MailTransaction>getObject(mail).get();
+		final MailTransaction mailTx = getMailTransaction(clientConnection);
 		mailTx.reset();
 
 		try {
