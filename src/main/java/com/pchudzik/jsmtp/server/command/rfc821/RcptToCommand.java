@@ -24,6 +24,8 @@ public class RcptToCommand implements CommandAction {
 					.cause(ex)
 					.build();
 		}
-		return new CommandResponse(SmtpResponse.OK);
+		return CommandResponse.commandResponse()
+				.response(SmtpResponse.OK)
+				.build();
 	}
 }

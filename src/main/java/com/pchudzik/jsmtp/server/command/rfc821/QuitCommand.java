@@ -16,9 +16,10 @@ class QuitCommand implements CommandAction {
 
 	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
-		return new CommandResponse(
-				SmtpResponse.CLOSE,
-				serverConfiguration.getListenAddress() + " Service closing transmission channel",
-				clientConnection::close);
+		return CommandResponse.commandResponse()
+						.response(SmtpResponse.CLOSE)
+						.responseMessage(serverConfiguration.getListenAddress() + " Service closing transmission channel")
+						.clientAction(clientConnection::close)
+						.build();
 	}
 }

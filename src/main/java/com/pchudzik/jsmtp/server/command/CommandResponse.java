@@ -7,21 +7,52 @@ import java.util.Optional;
  * Created by pawel on 22.04.14.
  */
 public class CommandResponse {
-	private final SmtpResponse smtpResponse;
-	private final String responseMessage;
-	final Optional<ClientAction> clientAction;
+	private SmtpResponse smtpResponse;
+	private String responseMessage;
+	Optional<ClientAction> clientAction = Optional.empty();
 
-	public CommandResponse(SmtpResponse smtpResponse, String responseMessage, ClientAction action) {
-		this.smtpResponse = smtpResponse;
-		this.responseMessage = responseMessage;
-		this.clientAction = Optional.ofNullable(action);
-	}
-	public CommandResponse(SmtpResponse smtpResponse, String responseMessage) {
-		this(smtpResponse, responseMessage, null);
+	private CommandResponse() { }
+
+	public static CommandResponseBuilder commandResponse() {
+		return new CommandResponseBuilder();
 	}
 
-	public CommandResponse(SmtpResponse smtpResponse) {
-		this(smtpResponse, null);
+	public static CommandResponse commandResponse(SmtpResponse response) {
+		return commandResponse()
+				.response(response)
+				.build();
+	}
+
+	public static class CommandResponseBuilder {
+		private final CommandResponse response;
+
+		private CommandResponseBuilder() {
+			this.response = new CommandResponse();
+		}
+
+		public CommandResponseBuilder response(SmtpResponse smtpResponse) {
+			response.smtpResponse = smtpResponse;
+			return this;
+		}
+
+		public CommandResponseBuilder responseMessage(String message) {
+			response.responseMessage = message;
+			return this;
+		}
+
+		public CommandResponseBuilder clientAction(ClientAction action) {
+			response.clientAction = Optional.ofNullable(action);
+			return this;
+		}
+
+		public CommandResponseBuilder commandFinished(boolean finished) {
+			response.commandFinished = finished;
+			return this;
+		}
+
+		public CommandResponse build() {
+			return response;
+		}
 	}
 
 	public SmtpResponse getSmtpResponse() {

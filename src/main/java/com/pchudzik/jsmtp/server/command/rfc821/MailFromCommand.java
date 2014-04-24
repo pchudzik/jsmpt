@@ -20,7 +20,7 @@ public class MailFromCommand implements CommandAction {
 
 		try {
 			mailTx.setFrom(AddressExtractor.getAddress(command));
-			return new CommandResponse(SmtpResponse.OK, "OK");
+			return CommandResponse.commandResponse(SmtpResponse.OK);
 		} catch (AddressException ex) {
 			throw commandExecutionException(SmtpResponse.MAIL_BOX_NOT_AVAILABLE)
 					.responseMessage("Invalid email address")

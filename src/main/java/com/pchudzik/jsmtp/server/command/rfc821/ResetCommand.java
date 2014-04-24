@@ -11,6 +11,6 @@ public class ResetCommand implements CommandAction {
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
 		MailTransactionUtils.getMailTransaction(clientConnection).reset();
 
-		return new CommandResponse(SmtpResponse.OK);
+		return CommandResponse.commandResponse(SmtpResponse.OK);
 	}
 }

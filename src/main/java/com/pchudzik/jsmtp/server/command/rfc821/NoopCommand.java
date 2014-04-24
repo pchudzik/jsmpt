@@ -9,6 +9,6 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 class NoopCommand implements CommandAction {
 	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
-		return new CommandResponse(SmtpResponse.OK);
+		return CommandResponse.commandResponse(SmtpResponse.OK);
 	}
 }

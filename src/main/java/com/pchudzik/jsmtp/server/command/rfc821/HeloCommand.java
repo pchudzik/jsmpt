@@ -22,7 +22,10 @@ class HeloCommand implements CommandAction {
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
 		final String domain = parseDomain(command);
 		if(domain.equals(serverConfiguration.getListenAddress())) {
-			return new CommandResponse(SmtpResponse.OK, domain);
+			return CommandResponse.commandResponse()
+					.responseMessage(domain)
+					.response(SmtpResponse.OK)
+					.build();
 		} else {
 			throw criticalCommandExecutionException(SmtpResponse.SERVICE_UNAVAILABLE)
 					.responseMessage(domain)
