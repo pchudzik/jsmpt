@@ -43,4 +43,18 @@ public class CommandResponseAssert extends AbstractAssert<CommandResponseAssert,
 
 		return this;
 	}
+
+	public CommandResponseAssert isNotFinished() {
+		return isFinished(false);
+	}
+
+	private CommandResponseAssert isFinished(boolean isFinished) {
+		isNotNull();
+
+		if(actual.commandFinished != isFinished) {
+			failWithMessage("Expected command to be %S finished", isFinished ? "" : "not");
+		}
+
+		return this;
+	}
 }

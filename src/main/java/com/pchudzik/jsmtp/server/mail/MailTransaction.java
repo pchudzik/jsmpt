@@ -1,5 +1,7 @@
 package com.pchudzik.jsmtp.server.mail;
 
+import com.google.common.base.Preconditions;
+
 import javax.mail.internet.InternetAddress;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import static com.google.common.collect.Sets.newHashSet;
 public class MailTransaction {
 	private InternetAddress from;
 	private Set<InternetAddress> recipients = newHashSet();
+	private UserInput userInput;
 
 	public void reset() {
 		from = null;
@@ -23,5 +26,28 @@ public class MailTransaction {
 
 	public void addRecipient(InternetAddress recipient) {
 		recipients.add(recipient);
+	}
+
+	public boolean dataInProgress() {
+		return userInput != null && !userInput.userInputFinished;
+	}
+
+	private void assertUserInputInProgress() {
+		Preconditions.checkNotNull(userInput, "Data transaction not started!");
+	}
+
+	public void addUserData(StringBuilder buffer) {
+		assertUserInputInProgress();
+		userInput.sb.append(buffer);
+	}
+
+	public void userDataFinished() {
+		assertUserInputInProgress();
+		userInput.userInputFinished = true;
+	}
+
+	private static class UserInput {
+		boolean userInputFinished = false;
+		StringBuffer sb = new StringBuffer();
 	}
 }

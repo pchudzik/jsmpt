@@ -10,6 +10,7 @@ public class CommandResponse {
 	private SmtpResponse smtpResponse;
 	private String responseMessage;
 	Optional<ClientAction> clientAction = Optional.empty();
+	boolean commandFinished = true;
 
 	private CommandResponse() { }
 
