@@ -8,8 +8,13 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
  */
 public class ResetCommand implements CommandAction {
 	@Override
+	public boolean canExecute(Command command) {
+		return command.getCommandString().startsWith("reset");
+	}
+
+	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
-		MailTransactionUtils.getMailTransaction(clientConnection).reset();
+		ClientContextUtilsUtils.getMailTransaction(clientConnection).reset();
 
 		return CommandResponse.commandResponse(SmtpResponse.OK);
 	}

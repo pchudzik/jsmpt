@@ -8,6 +8,11 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
  */
 class NoopCommand implements CommandAction {
 	@Override
+	public boolean canExecute(Command command) {
+		return command.getCommandString().startsWith("noop");
+	}
+
+	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
 		return CommandResponse.commandResponse(SmtpResponse.OK);
 	}

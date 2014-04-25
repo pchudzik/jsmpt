@@ -52,7 +52,7 @@ public class CommandResponseAssert extends AbstractAssert<CommandResponseAssert,
 		isNotNull();
 
 		if(actual.commandFinished != isFinished) {
-			failWithMessage("Expected command to be %S finished", isFinished ? "" : "not");
+			failWithMessage("Expected command to be %s finished", isFinished ? "" : "not");
 		}
 
 		return this;

@@ -15,6 +15,11 @@ class QuitCommand implements CommandAction {
 	}
 
 	@Override
+	public boolean canExecute(Command command) {
+		return command.getCommandString().startsWith("quit");
+	}
+
+	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
 		return CommandResponse.commandResponse()
 						.response(SmtpResponse.CLOSE)

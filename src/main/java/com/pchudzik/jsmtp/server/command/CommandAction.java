@@ -7,4 +7,5 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
  */
 public interface CommandAction {
 	CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException;
+	boolean canExecute(Command command);
 }

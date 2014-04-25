@@ -16,7 +16,7 @@ public class CommandUtils {
 		final MailTransaction mailTransaction = mock(MailTransaction.class);
 		final ClientContext context = mock(ClientContext.class);
 
-		doReturn(Optional.of(mailTransaction)).when(context).getObject(MailConstans.mail);
+		doReturn(Optional.of(mailTransaction)).when(context).getObject(ContextConstant.mail);
 		when(clientConnection.getClientContext()).thenReturn(context);
 
 		return mailTransaction;

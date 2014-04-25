@@ -1,7 +1,7 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import com.pchudzik.jsmtp.common.TimeProvider;
-import com.pchudzik.jsmtp.server.command.rfc821.MailConstans;
+import com.pchudzik.jsmtp.server.command.rfc821.ContextConstant;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.ClientRejectedException;
 import com.pchudzik.jsmtp.server.nio.pool.ConnectionsRegistry;
@@ -28,7 +28,7 @@ public class ClientConnectionFactory {
 		final ClientConnection newConnection = new ClientConnection(
 				timeProvider,
 				selectionKey,
-				new ClientContext().put(MailConstans.mail, new MailTransaction()));
+				new ClientContext().put(ContextConstant.mail, new MailTransaction()));
 		newClientProcessor.processNewClient(newConnection);
 		connectionsRegistry.addNewClient(newConnection);
 		return newConnection;

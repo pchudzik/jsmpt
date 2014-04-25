@@ -15,12 +15,19 @@ import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
  * Created by pawel on 24.04.14.
  */
 public class DataCommand implements CommandAction {
+
+	@Override
+	public boolean canExecute(Command command) {
+		return command.getCommandString().startsWith("data");
+	}
+
     @Override
     public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
-        final MailTransaction mailTx = MailTransactionUtils.getMailTransaction(clientConnection);
+        final MailTransaction mailTx = ClientContextUtilsUtils.getMailTransaction(clientConnection);
         if(mailTx.dataInProgress()) {
             return readMoreDataFromClient(clientConnection.getReader(), mailTx);
         } else {
+			clientConnection.getClientContext().put(ContextConstant.pendingCommand, this);
             return commandResponse()
                     .response(SmtpResponse.MAIL_INPUT_START)
                     .responseMessage("Start mail input; end with <CRLF>.<CRLF>")
@@ -28,8 +35,8 @@ public class DataCommand implements CommandAction {
                     .build();
         }
     }
- 
-    private CommandResponse readMoreDataFromClient(Reader clientReader, MailTransaction mailTx) throws CommandExecutionException {
+
+	private CommandResponse readMoreDataFromClient(Reader clientReader, MailTransaction mailTx) throws CommandExecutionException {
         final boolean isFinished = readDataFromClient(clientReader, mailTx);
         if(isFinished) {
             mailTx.userDataFinished();

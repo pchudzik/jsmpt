@@ -19,6 +19,11 @@ class HeloCommand implements CommandAction {
 	}
 
 	@Override
+	public boolean canExecute(Command command) {
+		return command.getCommandString().startsWith("helo");
+	}
+
+	@Override
 	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
 		final String domain = parseDomain(command);
 		if(domain.equals(serverConfiguration.getListenAddress())) {
