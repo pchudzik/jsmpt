@@ -16,26 +16,18 @@ import java.nio.channels.SelectionKey;
 public class ClientConnectionFactory {
 	final TimeProvider timeProvider;
 	final ConnectionsRegistry connectionsRegistry;
-	final NewClientProcessor newClientProcessor;
 
-	public ClientConnectionFactory(TimeProvider timeProvider, ConnectionsRegistry connectionsRegistry, NewClientProcessor clientProcessor) {
+	public ClientConnectionFactory(TimeProvider timeProvider, ConnectionsRegistry connectionsRegistry) {
 		this.timeProvider = timeProvider;
 		this.connectionsRegistry = connectionsRegistry;
-		this.newClientProcessor = clientProcessor;
 	}
 
 	public ClientConnection newConnection(SelectionKey selectionKey) throws ClientRejectedException {
 		final ClientConnection newConnection = new ClientConnection(
 				timeProvider,
 				selectionKey,
-				new ClientContext().put(ContextConstant.mail, new MailTransaction()));
-		newClientProcessor.processNewClient(newConnection);
+				new ClientContext());
 		connectionsRegistry.addNewClient(newConnection);
 		return newConnection;
-	}
-
-	@FunctionalInterface
-	public interface NewClientProcessor {
-		void processNewClient(ClientConnection newConnection) throws ClientRejectedException;
 	}
 }

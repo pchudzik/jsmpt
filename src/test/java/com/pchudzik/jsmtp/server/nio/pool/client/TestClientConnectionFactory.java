@@ -16,11 +16,7 @@ import static org.mockito.Mockito.when;
  */
 public class TestClientConnectionFactory extends ClientConnectionFactory {
 	public TestClientConnectionFactory() {
-		this(newConnection -> {});
-	}
-
-	public TestClientConnectionFactory(NewClientProcessor processor) {
-		super(new FakeTimeProvider(), mock(ConnectionsRegistry.class), processor);
+		super(new FakeTimeProvider(), mock(ConnectionsRegistry.class));
 	}
 
 	public FakeTimeProvider getTimeProvider() {
