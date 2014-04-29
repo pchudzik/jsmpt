@@ -110,10 +110,12 @@ class ConnectionPool implements RunnableTask {
 	protected void processIncomingData(Iterator<SelectionKey> keyIterator) {
 		while (keyIterator.hasNext()) {
 			final SelectionKey selectionKey = keyIterator.next();
+			final ClientConnection clientConnection = (ClientConnection) selectionKey.attachment();
 			try {
-				clientHandler.processClient((ClientConnection)selectionKey.attachment());
+				clientHandler.processClient(clientConnection);
 			} catch (Exception ex) {
 				log.warn("Unable to process client data", ex);
+				clientConnection.setBroken(ex);
 			} finally {
 				keyIterator.remove();
 			}
