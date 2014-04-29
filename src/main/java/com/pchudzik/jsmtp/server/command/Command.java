@@ -10,10 +10,16 @@ import org.apache.commons.lang.StringUtils;
  */
 public class Command {
 	private final String commandString;
+	private final String originalCommandString;
 
 	public Command(String commandString) {
 		Preconditions.checkArgument(StringUtils.isNotBlank(commandString));
-		this.commandString = commandString;
+		this.originalCommandString = commandString;
+		this.commandString = commandString.trim().toLowerCase();
+	}
+
+	public String getOriginalCommandString() {
+		return originalCommandString;
 	}
 
 	public String getCommandString() {

@@ -3,6 +3,9 @@ package com.pchudzik.jsmtp.server.command;
 import java.io.IOException;
 import java.util.Optional;
 
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Created by pawel on 22.04.14.
  */
@@ -64,7 +67,14 @@ public class CommandResponse {
 		return responseMessage;
 	}
 
-	public void executeClientAction() throws IOException {
+	public void execute(ClientConnection clientConnection) throws IOException {
+		clientConnection.getWriter()
+				.append(smtpResponse.getCode() + " ")
+				.append(StringUtils.isNotBlank(responseMessage) ? responseMessage : smtpResponse.toString());
+		clientAction.orElse(ClientAction.noAction).performAction();
+	}
+
+	private void executeClientAction() throws IOException {
 		if(clientAction.isPresent()) {
 			clientAction.get().performAction();
 		}
@@ -72,6 +82,7 @@ public class CommandResponse {
 
 	@FunctionalInterface
 	public interface ClientAction {
+		ClientAction noAction = () -> {};
 		void performAction() throws IOException;
 	}
 }
