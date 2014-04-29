@@ -24,7 +24,7 @@ class ClientChannelWriter extends Writer {
 			socketChannel.write(byteBuffer);
 			clientConnection.heartbeat();
 		} catch (IOException ex) {
-			clientConnection.setBroken(ex);
+			clientConnection.setBrokenReason(ex);
 		}
 	}
 

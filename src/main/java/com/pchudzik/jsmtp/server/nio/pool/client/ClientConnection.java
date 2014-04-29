@@ -1,10 +1,11 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import com.pchudzik.jsmtp.common.TimeProvider;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -21,10 +22,9 @@ public class ClientConnection {
 	private final TimeProvider timeProvider;
 	private final SelectionKey selectionKey;
 
-	private final ClientContext clientContext;
-
-	private volatile Throwable brokenReason;
-	private volatile long heartbeat;
+	@Getter private final ClientContext clientContext;
+	@Setter private volatile Throwable brokenReason;
+	@Getter private volatile long lastHeartbeat;
 
 	ClientConnection(TimeProvider timeProvider, SelectionKey selectionKey, ClientContext clientContext) {
 		this.timeProvider = timeProvider;
@@ -42,15 +42,7 @@ public class ClientConnection {
 	}
 
 	void heartbeat() {
-		this.heartbeat = timeProvider.getCurrentTime();
-	}
-
-	public long getLastHeartbeat() {
-		return heartbeat;
-	}
-
-	public void setBroken(Throwable reason) {
-		this.brokenReason = reason;
+		this.lastHeartbeat = timeProvider.getCurrentTime();
 	}
 
 	SocketChannel channel() {
@@ -71,9 +63,5 @@ public class ClientConnection {
 
 	public BufferedReader getReader() {
 		return getReader(defaultEncoding);
-	}
-
-	public ClientContext getClientContext() {
-		return clientContext;
 	}
 }

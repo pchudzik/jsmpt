@@ -1,14 +1,15 @@
 package com.pchudzik.jsmtp.server.command;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
 /**
  * Created by pawel on 21.04.14.
  */
 public class CommandExecutionException extends Exception {
-	private final boolean critical;
-	private final SmtpResponse smtpResponse;
+	@Getter private final boolean critical;
+	@Getter private final SmtpResponse smtpResponse;
 
 	private CommandExecutionException(boolean critical, SmtpResponse smtpResponse, String message, Throwable cause) {
 		super(message, cause);
@@ -22,14 +23,6 @@ public class CommandExecutionException extends Exception {
 
 	public static CommandExecutionExceptionBuilder commandExecutionException(SmtpResponse smtpResponse) {
 		return new CommandExecutionExceptionBuilder(!CommandExecutionExceptionBuilder.CRITICAL, smtpResponse);
-	}
-
-	public boolean isCritical() {
-		return critical;
-	}
-
-	public SmtpResponse getSmtpResponse() {
-		return smtpResponse;
 	}
 
 	public static class CommandExecutionExceptionBuilder {

@@ -4,14 +4,17 @@ import java.io.IOException;
 import java.util.Optional;
 
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.Builder;
 import org.apache.commons.lang.StringUtils;
 
 /**
  * Created by pawel on 22.04.14.
  */
 public class CommandResponse {
-	private SmtpResponse smtpResponse;
-	private String responseMessage;
+	protected SmtpResponse smtpResponse;
+	protected String responseMessage;
 	Optional<ClientAction> clientAction = Optional.empty();
 	boolean commandFinished = true;
 
@@ -59,25 +62,11 @@ public class CommandResponse {
 		}
 	}
 
-	public SmtpResponse getSmtpResponse() {
-		return smtpResponse;
-	}
-
-	public String getResponseMessage() {
-		return responseMessage;
-	}
-
 	public void execute(ClientConnection clientConnection) throws IOException {
 		clientConnection.getWriter()
 				.append(smtpResponse.getCode() + " ")
 				.append(StringUtils.isNotBlank(responseMessage) ? responseMessage : smtpResponse.toString());
 		clientAction.orElse(ClientAction.noAction).performAction();
-	}
-
-	private void executeClientAction() throws IOException {
-		if(clientAction.isPresent()) {
-			clientAction.get().performAction();
-		}
 	}
 
 	@FunctionalInterface

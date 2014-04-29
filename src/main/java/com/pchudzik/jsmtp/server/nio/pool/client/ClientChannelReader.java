@@ -40,7 +40,7 @@ class ClientChannelReader extends Reader {
 
 			return charBuffer.length();
 		} catch (IOException ex) {
-			clientConnection.setBroken(ex);
+			clientConnection.setBrokenReason(ex);
 			throw ex;
 		}
 	}

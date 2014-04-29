@@ -19,7 +19,7 @@ public class CommandResponseAssert extends AbstractAssert<CommandResponseAssert,
 	public CommandResponseAssert hasSmtpResponse(SmtpResponse smtpResponse) {
 		isNotNull();
 
-		SmtpResponseAssert.assertThat(actual.getSmtpResponse())
+		SmtpResponseAssert.assertThat(actual.smtpResponse)
 				.hasSmtpResponse(smtpResponse);
 
 		return this;
@@ -28,8 +28,8 @@ public class CommandResponseAssert extends AbstractAssert<CommandResponseAssert,
 	public CommandResponseAssert hasMessage(String expectedMessage) {
 		isNotNull();
 
-		if(!StringUtils.equals(actual.getResponseMessage(), expectedMessage)) {
-			failWithMessage("Expected message\n<%s>\nbut was\n<%s>", expectedMessage, actual.getResponseMessage());
+		if(!StringUtils.equals(actual.responseMessage, expectedMessage)) {
+			failWithMessage("Expected message\n<%s>\nbut was\n<%s>", expectedMessage, actual.responseMessage);
 		}
 
 		return this;

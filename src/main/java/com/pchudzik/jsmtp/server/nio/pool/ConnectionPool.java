@@ -94,7 +94,7 @@ class ConnectionPool implements RunnableTask {
 						clientHandler.onNewClientConnection(clientConnection);
 					} catch (Exception ex) {
 						log.info("Client handler failed to process new client registration", ex);
-						clientConnection.setBroken(ex);
+						clientConnection.setBrokenReason(ex);
 					}
 				} catch (ClientRejectedException ex) {
 					log.info("Client not accepted", ex);
@@ -115,7 +115,7 @@ class ConnectionPool implements RunnableTask {
 				clientHandler.processClient(clientConnection);
 			} catch (Exception ex) {
 				log.warn("Unable to process client data", ex);
-				clientConnection.setBroken(ex);
+				clientConnection.setBrokenReason(ex);
 			} finally {
 				keyIterator.remove();
 			}
