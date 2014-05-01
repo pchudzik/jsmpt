@@ -75,11 +75,7 @@ public class ConnectionsRegistry implements RunnableTask {
 				connectedClients.remove();
 			} else if(currentTime - connection.getLastHeartbeat() > maxKeepAliveTime) {
 				log.debug("Client connection {} timeout after {}", connection, currentTime - connection.getLastHeartbeat());
-				performClientCloseAction(() -> {
-					connection.getWriter()
-							.append("timeout\n\r");
-					connection.close();
-				});
+				performClientCloseAction(connection::close);
 				connectedClients.remove();
 			}
 		}

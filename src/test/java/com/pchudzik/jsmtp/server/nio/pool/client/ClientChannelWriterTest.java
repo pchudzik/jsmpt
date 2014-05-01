@@ -65,7 +65,7 @@ public class ClientChannelWriterTest {
 
 		writeDataToChannel("any string");
 
-		assertThat(clientConnection.isValid()).isTrue();
+		assertThat(clientConnection.isValid()).isFalse();
 	}
 
 	private void writeDataToChannel(String data) throws IOException {

@@ -113,14 +113,20 @@ public class ConnectionPoolTest {
 		);
 
 		ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
-		connectionPool.run();
-		new Thread(connectionsAcceptingServer).start();
+		StoppableThread stoppableServer = new StoppableThread(connectionsAcceptingServer);
+		StoppableThread stoppableConnectionPool = new StoppableThread(connectionPool);
+		try {
+			stoppableServer.start();
+			stoppableConnectionPool.start();
 
-		writeDataToServer(
-				connectionsAcceptingServer.getHost(),
-				connectionsAcceptingServer.getPort(),
-				"any content");
-
+			writeDataToServer(
+					connectionsAcceptingServer.getHost(),
+					connectionsAcceptingServer.getPort(),
+					"any content");
+		} finally {
+			stoppableConnectionPool.shutdown();
+			stoppableServer.shutdown();
+		}
 		//no exception
 	}
 
