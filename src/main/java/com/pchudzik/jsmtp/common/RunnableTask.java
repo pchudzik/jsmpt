@@ -5,6 +5,7 @@ package com.pchudzik.jsmtp.common;
  */
 @FunctionalInterface
 public interface RunnableTask extends Runnable {
+	default void onClose() {}
 	default void onBeforeRun() {}
 	default void onAfterRun() {}
 }

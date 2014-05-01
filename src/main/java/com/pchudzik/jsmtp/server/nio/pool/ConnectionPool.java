@@ -34,8 +34,8 @@ class ConnectionPool implements RunnableTask {
 	private final Selector clientSelector;
 	private final LinkedBlockingQueue<SocketChannel> incomingConnectionsQueue;
 
-	public ConnectionPool(int selectionOperation, ConnectionPoolConfiguration connectionPoolConfiguration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
-		this.selectionOperation = selectionOperation;
+	public ConnectionPool(ConnectionPoolConfiguration connectionPoolConfiguration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
+		this.selectionOperation = SelectionKey.OP_READ | SelectionKey.OP_WRITE;
 		this.connectionPoolConfiguration = connectionPoolConfiguration;
 		this.clientHandler = clientHandler;
 		this.connectionFactory = connectionFactory;

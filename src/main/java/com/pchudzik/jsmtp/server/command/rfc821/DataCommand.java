@@ -28,6 +28,7 @@ public class DataCommand implements CommandAction {
             return readMoreDataFromClient(clientConnection.getReader(), mailTx);
         } else {
 			clientConnection.getClientContext().put(ContextConstant.pendingCommand, this);
+			mailTx.startUserInput();
             return commandResponse()
                     .response(SmtpResponse.MAIL_INPUT_START)
                     .responseMessage("Start mail input; end with <CRLF>.<CRLF>")
@@ -49,23 +50,24 @@ public class DataCommand implements CommandAction {
     }
  
     private boolean readDataFromClient(Reader clientReader, MailTransaction mailTx) throws CommandExecutionException {
-        try {
-            final String [] lastLine = new String[1];
-            final StringBuilder buffer = new StringBuilder();
-            IOUtils.readLines(clientReader)
-                    .stream()
-                    .forEach(line -> {
-                        lastLine[0] = line;
-                        buffer.append(line).append("\n");
-                    });
-            mailTx.addUserData(buffer);
-            return ".".equals(lastLine[0]);
-        } catch (IOException ex) {
-            mailTx.reset();
-            throw commandExecutionException(SmtpResponse.TRANSACTION_FAILED)
-                    .cause(ex)
-                    .responseMessage("Can not reada data from client")
-                    .build();
-        }
+//        try {
+//            final String [] lastLine = new String[1];
+//            final StringBuilder buffer = new StringBuilder();
+//            IOUtils.readLines(clientReader)
+//                    .stream()
+//                    .forEach(line -> {
+//                        lastLine[0] = line;
+//                        buffer.append(line).append("\n");
+//                    });
+//            mailTx.addUserData(buffer);
+//            return ".".equals(lastLine[0]);
+//        } catch (IOException ex) {
+//            mailTx.reset();
+//            throw commandExecutionException(SmtpResponse.TRANSACTION_FAILED)
+//                    .cause(ex)
+//                    .responseMessage("Can not reada data from client")
+//                    .build();
+//        }
+		return false;
     }
 }

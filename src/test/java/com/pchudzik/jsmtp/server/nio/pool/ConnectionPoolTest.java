@@ -54,7 +54,7 @@ public class ConnectionPoolTest {
 		receivedDataSemaphore.drainPermits();	//no go with test until data is received
 
 		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(new FakeTimeProvider(), mock(ConnectionsRegistry.class));
-		connectionPool = new ConnectionPool(SelectionKey.OP_READ, new ConnectionPoolConfiguration("reading server"), connectionFactory, clientConnection -> {
+		connectionPool = new ConnectionPool(new ConnectionPoolConfiguration("reading server"), connectionFactory, clientConnection -> {
 			try (Reader userDataReader = clientConnection.getReader()) {
 				receivedString.setValue(IOUtils.toString(userDataReader));
 				receivedDataSemaphore.release();	//synchronize data receiving between threads
@@ -63,25 +63,24 @@ public class ConnectionPoolTest {
 			}
 		});
 
-		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool)) {
-			StoppableThread stoppableThread = new StoppableThread(connectionPool);
-			stoppableThread.start();
+		ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
+		StoppableThread stoppableThread = new StoppableThread(connectionPool);
+		stoppableThread.start();
 
-			try {
-				connectionsAcceptingServer.start();
+		try {
+			new Thread(connectionsAcceptingServer).start();
 
-				writeDataToServer(
-						connectionsAcceptingServer.getHost(),
-						connectionsAcceptingServer.getPort(),
-						anyString);
+			writeDataToServer(
+					connectionsAcceptingServer.getHost(),
+					connectionsAcceptingServer.getPort(),
+					anyString);
 
-				receivedDataSemaphore.tryAcquire(1_000L, TimeUnit.MILLISECONDS);
+			receivedDataSemaphore.tryAcquire(1_000L, TimeUnit.MILLISECONDS);
 
-				assertThat((String) receivedString.getValue())
-						.isEqualTo(anyString);
-			} finally {
-				stoppableThread.shutdown();
-			}
+			assertThat((String) receivedString.getValue())
+					.isEqualTo(anyString);
+		} finally {
+			stoppableThread.shutdown();
 		}
 	}
 
@@ -109,22 +108,20 @@ public class ConnectionPoolTest {
 		};
 
 		connectionPool = new ConnectionPool(
-				SelectionKey.OP_WRITE,
 				new ConnectionPoolConfiguration("anyName"),
 				clientConnectionFactory, failingClient
 		);
 
-		try (ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool)) {
-			connectionPool.run();
-			connectionsAcceptingServer.start();
+		ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
+		connectionPool.run();
+		new Thread(connectionsAcceptingServer).start();
 
-			writeDataToServer(
-					connectionsAcceptingServer.getHost(),
-					connectionsAcceptingServer.getPort(),
-					"any content");
+		writeDataToServer(
+				connectionsAcceptingServer.getHost(),
+				connectionsAcceptingServer.getPort(),
+				"any content");
 
-			//no exception
-		}
+		//no exception
 	}
 
 	private ClientHandler failingClientHandler() {
@@ -166,7 +163,7 @@ public class ConnectionPoolTest {
 
 	private static class DoNothingConnectionPool extends ConnectionPool {
 		public DoNothingConnectionPool(int selectionOperation, ConnectionPoolConfiguration connectionPoolConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
-			super(selectionOperation, connectionPoolConfiguration, connectionFactory, clientHandler);
+			super(connectionPoolConfiguration, connectionFactory, clientHandler);
 		}
 
 		@Override

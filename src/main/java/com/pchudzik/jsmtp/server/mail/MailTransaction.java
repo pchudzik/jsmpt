@@ -33,6 +33,10 @@ public class MailTransaction {
 		Preconditions.checkNotNull(userInput, "Data transaction not started!");
 	}
 
+	public void startUserInput() {
+		userInput = new UserInput();
+	}
+
 	public void addUserData(StringBuilder buffer) {
 		assertUserInputInProgress();
 		userInput.sb.append(buffer);

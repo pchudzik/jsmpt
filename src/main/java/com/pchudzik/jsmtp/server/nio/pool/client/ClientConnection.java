@@ -30,6 +30,7 @@ public class ClientConnection {
 		this.timeProvider = timeProvider;
 		this.selectionKey = selectionKey;
 		this.clientContext = clientContext;
+		heartbeat();
 	}
 
 	public void close() throws IOException {
@@ -38,7 +39,7 @@ public class ClientConnection {
 	}
 
 	public boolean isValid() {
-		return brokenReason != null || !selectionKey.isValid();
+		return brokenReason == null && selectionKey.isValid();
 	}
 
 	void heartbeat() {

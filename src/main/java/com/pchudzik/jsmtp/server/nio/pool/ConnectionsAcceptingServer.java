@@ -1,24 +1,21 @@
 package com.pchudzik.jsmtp.server.nio.pool;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.pchudzik.jsmtp.common.RunnableTask;
 
 /**
  * Created by pawel on 10.04.14.
  */
-public class ConnectionsAcceptingServer extends Thread implements Closeable {
+public class ConnectionsAcceptingServer implements RunnableTask {
 	private int port = -1;
 	private final String host;
 	private final ConnectionPool connectionPool;
-
-	private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
 	private ServerSocketChannel serverSocketChannel;
 	private ServerSocket serverSocket;
@@ -43,7 +40,7 @@ public class ConnectionsAcceptingServer extends Thread implements Closeable {
 	}
 
 	@Override
-	public synchronized void start() {
+	public void onBeforeRun() {
 		try {
 			serverSocketChannel = ServerSocketChannel.open();
 			serverSocketChannel.configureBlocking(false);
@@ -56,31 +53,32 @@ public class ConnectionsAcceptingServer extends Thread implements Closeable {
 		} catch (Exception ex) {
 			throw new IllegalStateException(ex);
 		}
-
-		super.start();
 	}
 
 	@Override
 	public void run() {
-		while (isRunning.get()) {
-			try {
-				if(serverSelector.select() > 0) {
-					Iterator<SelectionKey> it = serverSelector.selectedKeys().iterator();
-					while(it.hasNext()) {
-						SelectionKey key = it.next();
-						if(key.isAcceptable()) {
-							ServerSocketChannel channel = (ServerSocketChannel) key.channel();
-							connectionPool.registerClient(channel.accept());
-						}
-						it.remove();
+		try {
+			if(serverSelector.select() > 0) {
+				Iterator<SelectionKey> it = serverSelector.selectedKeys().iterator();
+				while(it.hasNext()) {
+					SelectionKey key = it.next();
+					if(key.isAcceptable()) {
+						ServerSocketChannel channel = (ServerSocketChannel) key.channel();
+						connectionPool.registerClient(channel.accept());
 					}
+					it.remove();
 				}
-			} catch (Exception e) {
-				throw new RuntimeException(e);
 			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
-	
+
+	@Override
+	public void onClose() {
+		serverSelector.wakeup();
+	}
+
 	private static int selectPort() {
 		int selectedPort = 49152;
 		while(true) {
@@ -93,11 +91,5 @@ public class ConnectionsAcceptingServer extends Thread implements Closeable {
 			}
 		}
 		return selectedPort;
-	}
-
-	@Override
-	public void close() throws IOException {
-		isRunning.set(false);
-		serverSelector.wakeup();
 	}
 }

@@ -12,12 +12,18 @@ public class StoppableThread extends Thread {
 		this.task = task;
 	}
 
+	public StoppableThread(RunnableTask task, String threadName) {
+		this.task = task;
+		setName(threadName);
+	}
+
 	public boolean isRunning() {
 		return isRunning;
 	}
 
 	public void shutdown() {
 		isRunning = false;
+		task.onClose();
 	}
 
 	@Override

@@ -35,7 +35,9 @@ public class SmtpClientHandler implements ClientHandler {
 
 	@Override
 	public void processClient(ClientConnection clientConnection) throws IOException {
+		//TODO try to geg pending command firstly if there is then redirect client input to Command
 		CommandResponse commandResponse = null;
+
 		try(final BufferedReader reader = clientConnection.getReader()) {
 			final String command = reader.readLine();
 

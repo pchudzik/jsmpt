@@ -18,6 +18,7 @@ class ClientChannelWriter extends Writer {
 
 	@Override
 	public void write(char[] cbuf, int off, int len) throws IOException {
+		clientConnection.heartbeat();
 		try {
 			final SocketChannel socketChannel = clientConnection.channel();
 			final ByteBuffer byteBuffer = charset.encode(CharBuffer.wrap(cbuf, off, len));
