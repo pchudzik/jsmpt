@@ -46,11 +46,15 @@ class ConnectionPool implements RunnableTask {
 
 	public void registerClient(SocketChannel newClient) throws ClientRejectedException {
 		try {
-			final boolean accepted = incomingConnectionsQueue.offer(newClient, connectionPoolConfiguration.getNewClientRegisterTimeout(), TimeUnit.MILLISECONDS);
+			final boolean accepted = incomingConnectionsQueue.offer(
+					newClient,
+					connectionPoolConfiguration.getNewClientRegisterTimeout(),
+					TimeUnit.MILLISECONDS);
 			if(!accepted) {
 				throw new ClientRejectedException("Client not accepted by thread " + Thread.currentThread().getName() +
 						" waiting queue size " + incomingConnectionsQueue.size());
 			} else {
+				log.debug("New client registered and waiting for processing");
 				clientSelector.wakeup();
 			}
 		} catch (InterruptedException e) {
@@ -60,22 +64,27 @@ class ConnectionPool implements RunnableTask {
 
 	@Override
 	public void run() {
+		int selectedKeys = 0;
 		try {
-			clientSelector.select(1000L);
+			selectedKeys = clientSelector.select(1000L);
 		} catch (IOException e) {
 			log.warn("Can not select new client");
 		}
 
 		checkAndRegisterNewClients();
 
-		processIncomingData(clientSelector.selectedKeys().iterator());
+		if(selectedKeys > 0) {
+			processIncomingData(clientSelector.selectedKeys().iterator());
+		}
 	}
 
 	private void checkAndRegisterNewClients() {
-		List<SocketChannel> newClients = Lists.newLinkedList();
-		incomingConnectionsQueue.drainTo(newClients);
+		if(!incomingConnectionsQueue.isEmpty()) {
+			List<SocketChannel> newClients = Lists.newLinkedList();
+			incomingConnectionsQueue.drainTo(newClients);
 
-		performNewClientsRegistration(newClients);
+			performNewClientsRegistration(newClients);
+		}
 	}
 
 	protected void performNewClientsRegistration(List<SocketChannel> newClients) {
@@ -92,6 +101,7 @@ class ConnectionPool implements RunnableTask {
 
 					try {
 						clientHandler.onNewClientConnection(clientConnection);
+						log.debug("New clients registered {}", clientConnection);
 					} catch (Exception ex) {
 						log.info("Client handler failed to process new client registration", ex);
 						clientConnection.setBrokenReason(ex);
@@ -110,15 +120,21 @@ class ConnectionPool implements RunnableTask {
 	protected void processIncomingData(Iterator<SelectionKey> keyIterator) {
 		while (keyIterator.hasNext()) {
 			final SelectionKey selectionKey = keyIterator.next();
-			final ClientConnection clientConnection = (ClientConnection) selectionKey.attachment();
 			try {
-				clientHandler.processClient(clientConnection);
-			} catch (Exception ex) {
-				log.warn("Unable to process client data", ex);
-				clientConnection.setBrokenReason(ex);
+				processSingleClientData(selectionKey);
 			} finally {
 				keyIterator.remove();
 			}
+		}
+	}
+
+	private void processSingleClientData(SelectionKey selectionKey) {
+		final ClientConnection clientConnection = (ClientConnection) selectionKey.attachment();
+		try {
+			clientHandler.processClient(clientConnection);
+		} catch (Exception ex) {
+			log.warn("Unable to process client data", ex);
+			clientConnection.setBrokenReason(ex);
 		}
 	}
 }

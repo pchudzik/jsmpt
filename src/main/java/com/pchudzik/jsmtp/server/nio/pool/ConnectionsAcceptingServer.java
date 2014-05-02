@@ -6,12 +6,15 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 import com.pchudzik.jsmtp.common.RunnableTask;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by pawel on 10.04.14.
  */
+@Slf4j
 public class ConnectionsAcceptingServer implements RunnableTask {
 	private int port = -1;
 	private final String host;
@@ -50,6 +53,8 @@ public class ConnectionsAcceptingServer implements RunnableTask {
 
 			serverSelector = Selector.open();
 			serverSocketChannel.register(serverSelector, SelectionKey.OP_ACCEPT);
+
+			log.info("Ready for client connections on {}:{}", host, port);
 		} catch (Exception ex) {
 			throw new IllegalStateException(ex);
 		}
@@ -58,12 +63,15 @@ public class ConnectionsAcceptingServer implements RunnableTask {
 	@Override
 	public void run() {
 		try {
-			if(serverSelector.select() > 0) {
+			int selectedKeysCount = 0;
+			if((selectedKeysCount = serverSelector.select(500)) > 0) {
+				log.debug("{} new clients awaiting for accept", selectedKeysCount);
 				Iterator<SelectionKey> it = serverSelector.selectedKeys().iterator();
 				while(it.hasNext()) {
 					SelectionKey key = it.next();
 					if(key.isAcceptable()) {
 						ServerSocketChannel channel = (ServerSocketChannel) key.channel();
+						log.debug("New connection from {}", channel);
 						connectionPool.registerClient(channel.accept());
 					}
 					it.remove();

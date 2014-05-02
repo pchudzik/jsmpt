@@ -1,13 +1,5 @@
 package com.pchudzik.jsmtp.server.nio.pool;
 
-import com.pchudzik.jsmtp.common.FakeTimeProvider;
-import com.pchudzik.jsmtp.common.StoppableThread;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.mutable.MutableObject;
-import org.testng.annotations.Test;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -15,21 +7,32 @@ import java.net.Socket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
+import static com.jayway.awaitility.Awaitility.await;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+
+import com.jayway.awaitility.Duration;
+import com.pchudzik.jsmtp.common.FakeTimeProvider;
+import com.pchudzik.jsmtp.common.StoppableThread;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.mutable.MutableObject;
+import org.testng.annotations.Test;
 
 /**
  * User: pawel
  * Date: 08.04.14
  * Time: 16:21
  */
+@Slf4j
 public class ConnectionPoolTest {
-	private static final int anySelectionOperation = SelectionKey.OP_ACCEPT;
+	private static final Duration THREE_SECONDS = new Duration(3, TimeUnit.SECONDS);
 
 	private ConnectionPool connectionPool;
 	private ClientConnectionFactory clientConnectionFactory = mock(ClientConnectionFactory.class);
@@ -50,37 +53,37 @@ public class ConnectionPoolTest {
 	public void shouldHandleIncomingConnectionFromNewClient() throws Exception {
 		final String anyString = "ala ma kota";
 		final MutableObject receivedString = new MutableObject(null);
-		final Semaphore receivedDataSemaphore = new Semaphore(1);
-		receivedDataSemaphore.drainPermits();	//no go with test until data is received
 
 		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(new FakeTimeProvider(), mock(ConnectionsRegistry.class));
 		connectionPool = new ConnectionPool(new ConnectionPoolConfiguration("reading server"), connectionFactory, clientConnection -> {
 			try (Reader userDataReader = clientConnection.getReader()) {
 				receivedString.setValue(IOUtils.toString(userDataReader));
-				receivedDataSemaphore.release();	//synchronize data receiving between threads
 			} catch (Exception ex) {
 				throw new RuntimeException(ex);
 			}
 		});
 
-		ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
-		StoppableThread stoppableThread = new StoppableThread(connectionPool);
-		stoppableThread.start();
+		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
+		final StoppableThread clientPoolThread = new StoppableThread(connectionPool);
 
-		try {
-			new Thread(connectionsAcceptingServer).start();
+		try(StoppableThread serverThread = new StoppableThread(connectionsAcceptingServer)) {
+			clientPoolThread.start();
+			serverThread.start();
+
+			await()
+					.atMost(THREE_SECONDS)
+					.until(() -> clientPoolThread.isRunning() && serverThread.isRunning());
 
 			writeDataToServer(
 					connectionsAcceptingServer.getHost(),
 					connectionsAcceptingServer.getPort(),
 					anyString);
 
-			receivedDataSemaphore.tryAcquire(1_000L, TimeUnit.MILLISECONDS);
-
-			assertThat((String) receivedString.getValue())
-					.isEqualTo(anyString);
+			await()
+					.atMost(THREE_SECONDS)
+					.until(() -> assertThat((String) receivedString.getValue()).isEqualTo(anyString));
 		} finally {
-			stoppableThread.shutdown();
+			clientPoolThread.shutdown();
 		}
 	}
 
@@ -95,7 +98,7 @@ public class ConnectionPoolTest {
 
 	@Test
 	public void clientHandlerExceptionOnNewClientShouldNotDestroyThread() throws Exception {
-		ClientHandler failingClient = new ClientHandler() {
+		final ClientHandler failingClient = new ClientHandler() {
 			@Override
 			public void onNewClientConnection(ClientConnection newClient) {
 				throw new RuntimeException();
@@ -112,12 +115,16 @@ public class ConnectionPoolTest {
 				clientConnectionFactory, failingClient
 		);
 
-		ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
-		StoppableThread stoppableServer = new StoppableThread(connectionsAcceptingServer);
-		StoppableThread stoppableConnectionPool = new StoppableThread(connectionPool);
+		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
+		final StoppableThread stoppableServer = new StoppableThread(connectionsAcceptingServer);
+		final StoppableThread stoppableConnectionPool = new StoppableThread(connectionPool);
 		try {
-			stoppableServer.start();
 			stoppableConnectionPool.start();
+			stoppableServer.start();
+
+			await()
+					.atMost(THREE_SECONDS)
+					.until(() -> stoppableServer.isRunning() && stoppableConnectionPool.isRunning());
 
 			writeDataToServer(
 					connectionsAcceptingServer.getHost(),
@@ -158,7 +165,6 @@ public class ConnectionPoolTest {
 
 	private ConnectionPool doNothingConnectionPool(ClientHandler clientHandler) throws IOException {
 		return new DoNothingConnectionPool(
-				anySelectionOperation,
 				new ConnectionPoolConfiguration("accept thread")
 						.setNewClientsQueueSize(1)
 						.setNewClientRegisterTimeout(1),
@@ -168,7 +174,7 @@ public class ConnectionPoolTest {
 	}
 
 	private static class DoNothingConnectionPool extends ConnectionPool {
-		public DoNothingConnectionPool(int selectionOperation, ConnectionPoolConfiguration connectionPoolConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
+		public DoNothingConnectionPool(ConnectionPoolConfiguration connectionPoolConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
 			super(connectionPoolConfiguration, connectionFactory, clientHandler);
 		}
 
