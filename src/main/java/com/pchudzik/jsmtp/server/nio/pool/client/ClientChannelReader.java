@@ -32,6 +32,7 @@ class ClientChannelReader extends Reader {
 			final ByteBuffer buffer = ByteBuffer.allocate(len * Character.BYTES);
 			final int readCount = clientConnection.channel().read(buffer);
 			if (readCount <= -1) {
+				clientConnection.close();
 				return -1;
 			}
 

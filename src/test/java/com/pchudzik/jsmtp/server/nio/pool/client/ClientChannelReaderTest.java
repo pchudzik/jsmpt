@@ -16,6 +16,8 @@ import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -71,6 +73,19 @@ public class ClientChannelReaderTest {
 		reader.read(buffer);
 
 		assertThat(new String(buffer)).isEqualTo(withUtfString);
+	}
+
+	@Test
+	public void shouldCloseClientConnectionOnBrokenChannel() throws Exception {
+		final ClientConnection clientConnection = mock(ClientConnection.class);
+
+		when(socketChannelMock.read(any(ByteBuffer.class))).thenReturn(-1);
+		when(clientConnection.channel()).thenReturn(socketChannelMock);
+
+		new ClientChannelReader(clientConnection, utf8Charset)
+				.read();
+
+		verify(clientConnection).close();
 	}
 
 	@Test
