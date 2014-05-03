@@ -29,7 +29,7 @@ public class MailFromCommandTest extends AddressExtractingCommandTest {
 						SmtpResponse.MAIL_BOX_NOT_AVAILABLE,
 						"Invalid email address"
 				}, {
-				mailFromCommandFactory,
+						mailFromCommandFactory,
 						new Command("mail from:"),
 						SmtpResponse.MAIL_BOX_NOT_AVAILABLE,
 						"Invalid email address"

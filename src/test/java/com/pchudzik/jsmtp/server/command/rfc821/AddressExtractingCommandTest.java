@@ -33,8 +33,8 @@ abstract class AddressExtractingCommandTest {
 	final static String rejectionEmailsDataProvider = "rejectionEmailsDataProvider";
 	@DataProvider(name = rejectionEmailsDataProvider) abstract Object[][] rejectionEmailsDataProvider();
 	@Test(dataProvider = rejectionEmailsDataProvider)
-	public void emailRejectionTest(CommandAction action, SmtpResponse expectedResponse, String expectedMessage) throws CommandExecutionException {
-		catchException(action).executeCommand();
+	public void emailRejectionTest(CommandActionFactory actionFactory, Command command, SmtpResponse expectedResponse, String expectedMessage) throws CommandExecutionException {
+		catchException(actionFactory.create(clientConnection, command)).executeCommand();
 
 		CommandExecutionExceptionAssert.assertThat(caughtException())
 				.isNotCritical()
