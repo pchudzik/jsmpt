@@ -63,10 +63,12 @@ public class CommandResponse {
 	}
 
 	public void execute(ClientConnection clientConnection) throws IOException {
-		clientConnection.getWriter()
-				.append(smtpResponse.getCode() + " ")
-				.append(StringUtils.isNotBlank(responseMessage) ? responseMessage : smtpResponse.toString())
-				.append("\n\r");
+		if(commandFinished) {
+			clientConnection.getWriter()
+					.append(smtpResponse.getCode() + " ")
+					.append(StringUtils.isNotBlank(responseMessage) ? responseMessage : smtpResponse.toString())
+					.append("\n\r");
+		}
 		clientAction.orElse(ClientAction.noAction).performAction();
 	}
 

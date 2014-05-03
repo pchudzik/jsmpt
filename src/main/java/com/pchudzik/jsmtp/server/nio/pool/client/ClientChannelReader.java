@@ -34,6 +34,9 @@ class ClientChannelReader extends Reader {
 			if (readCount <= -1) {
 				clientConnection.close();
 				return -1;
+			} else if(readCount == 0) {
+				//nothing read
+				return -1;
 			}
 
 			buffer.flip();
