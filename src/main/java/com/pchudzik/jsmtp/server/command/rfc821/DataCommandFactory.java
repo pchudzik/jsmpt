@@ -11,6 +11,7 @@ import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Created by pawel on 24.04.14.
@@ -27,7 +28,8 @@ public class DataCommandFactory implements CommandActionFactory {
 	}
 
 	@RequiredArgsConstructor
-	private static class DataCommandAction implements CommandAction {
+	static class DataCommandAction implements CommandAction {
+		static final String commandEnd = ".";
 		private final ClientConnection clientConnection;
 
 		@Override
@@ -66,10 +68,12 @@ public class DataCommandFactory implements CommandActionFactory {
 						.stream()
 						.forEach(line -> {
 							lastLine[0] = line;
-							buffer.append(line).append("\n");
+							if(!commandEnd.equals(line)) {
+								buffer.append(line).append("\n");
+							}
 						});
 				mailTx.addUserData(buffer);
-				return ".".equals(lastLine[0]);
+				return commandEnd.equals(lastLine[0]);
 			} catch (IOException ex) {
 				mailTx.reset();
 				throw commandExecutionException(SmtpResponse.TRANSACTION_FAILED)
