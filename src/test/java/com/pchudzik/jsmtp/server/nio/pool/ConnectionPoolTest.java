@@ -4,25 +4,30 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.net.Socket;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.googlecode.catchexception.CatchException.catchException;
 import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.jayway.awaitility.Awaitility.await;
+import static com.pchudzik.jsmtp.common.function.FunctionUtils.uncheckedConsumer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import com.beust.jcommander.internal.Lists;
 import com.jayway.awaitility.Duration;
 import com.pchudzik.jsmtp.common.FakeTimeProvider;
+import com.pchudzik.jsmtp.common.RunnableTask;
 import com.pchudzik.jsmtp.common.StoppableThread;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.mutable.MutableObject;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -33,13 +38,33 @@ import org.testng.annotations.Test;
 @Slf4j
 public class ConnectionPoolTest {
 	private static final Duration THREE_SECONDS = new Duration(3, TimeUnit.SECONDS);
+	private final LinkedList<StoppableThread> createdThreads = Lists.newLinkedList();
 
-	private ConnectionPool connectionPool;
-	private ClientConnectionFactory clientConnectionFactory = mock(ClientConnectionFactory.class);
+	private ClientConnectionFactory clientConnectionFactory;
+	private ClientConnectionFactory connectionFactory;
+
+	@BeforeMethod
+	public void setup() {
+		clientConnectionFactory = mock(ClientConnectionFactory.class);
+		connectionFactory = new ClientConnectionFactory(
+				new FakeTimeProvider(),
+				mock(ConnectionsRegistry.class));
+	}
+
+	@AfterMethod
+	public void shutdownAnyRunningThreads() {
+		while (createdThreads.isEmpty()) {
+			final StoppableThread thread = createdThreads.pop();
+			thread.shutdown();
+			await()
+					.atMost(THREE_SECONDS)
+					.until(() -> thread.isFinished());
+		}
+	}
 
 	@Test
 	public void shouldRejectClientsIfIncomingConnectionsQueueExceeded() throws Exception {
-		connectionPool = doNothingConnectionPool(doNothingHandler());
+		final ConnectionPool connectionPool = doNothingConnectionPool(doNothingHandler());
 
 		connectionPool.registerClient(mock(SocketChannel.class));
 
@@ -52,44 +77,39 @@ public class ConnectionPoolTest {
 	@Test
 	public void shouldHandleIncomingConnectionFromNewClient() throws Exception {
 		final String anyString = "ala ma kota";
-		final MutableObject receivedString = new MutableObject(null);
+		final StringBuilder receivedString = new StringBuilder();
 
-		final ClientConnectionFactory connectionFactory = new ClientConnectionFactory(new FakeTimeProvider(), mock(ConnectionsRegistry.class));
-		connectionPool = new ConnectionPool(new ConnectionPoolConfiguration("reading server"), connectionFactory, clientConnection -> {
+		final ConnectionPool connectionPool = new ConnectionPool(new ConnectionPoolConfiguration("reading server"), connectionFactory, clientConnection -> {
 			try (Reader userDataReader = clientConnection.getReader()) {
-				receivedString.setValue(IOUtils.toString(userDataReader));
+				receivedString.append(IOUtils.toString(userDataReader));
 			} catch (Exception ex) {
 				throw new RuntimeException(ex);
 			}
 		});
-
 		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
-		final StoppableThread clientPoolThread = new StoppableThread(connectionPool);
 
-		try(StoppableThread serverThread = new StoppableThread(connectionsAcceptingServer)) {
-			clientPoolThread.start();
-			serverThread.start();
+		startNewThread(connectionPool);
+		startNewThread(connectionsAcceptingServer);
 
-			await()
-					.atMost(THREE_SECONDS)
-					.until(() -> clientPoolThread.isRunning() && serverThread.isRunning());
+		writeDataToServer(
+				connectionsAcceptingServer.getHost(),
+				connectionsAcceptingServer.getPort(),
+				uncheckedConsumer(outputStream -> {
+					outputStream.write(anyString.getBytes());
+					outputStream.flush();
 
-			writeDataToServer(
-					connectionsAcceptingServer.getHost(),
-					connectionsAcceptingServer.getPort(),
-					anyString);
+					outputStream.write(anyString.getBytes());
+					outputStream.flush();
+				}));
 
-			await()
-					.atMost(THREE_SECONDS)
-					.until(() -> assertThat((String) receivedString.getValue()).isEqualTo(anyString));
-		} finally {
-			clientPoolThread.shutdown();
-		}
+		await()
+				.atMost(THREE_SECONDS)
+				.until(() -> assertThat(receivedString.toString()).isEqualTo(anyString + anyString));
 	}
 
 	@Test
 	public void clientHandlerExceptionOnProcessClientShouldNotDestroyThread() throws Exception {
-		connectionPool = doNothingConnectionPool(failingClientHandler());
+		final ConnectionPool connectionPool = doNothingConnectionPool(failingClientHandler());
 
 		catchException(connectionPool).registerClient(mock(SocketChannel.class));
 
@@ -110,31 +130,32 @@ public class ConnectionPoolTest {
 			}
 		};
 
-		connectionPool = new ConnectionPool(
+		ConnectionPool connectionPool = new ConnectionPool(
 				new ConnectionPoolConfiguration("anyName"),
-				clientConnectionFactory, failingClient
-		);
+				clientConnectionFactory, failingClient);
 
 		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
-		final StoppableThread stoppableServer = new StoppableThread(connectionsAcceptingServer);
-		final StoppableThread stoppableConnectionPool = new StoppableThread(connectionPool);
-		try {
-			stoppableConnectionPool.start();
-			stoppableServer.start();
 
-			await()
-					.atMost(THREE_SECONDS)
-					.until(() -> stoppableServer.isRunning() && stoppableConnectionPool.isRunning());
+		startNewThread(connectionPool);
+		startNewThread(connectionsAcceptingServer);
 
-			writeDataToServer(
-					connectionsAcceptingServer.getHost(),
-					connectionsAcceptingServer.getPort(),
-					"any content");
-		} finally {
-			stoppableConnectionPool.shutdown();
-			stoppableServer.shutdown();
-		}
+		writeDataToServer(
+				connectionsAcceptingServer.getHost(),
+				connectionsAcceptingServer.getPort(),
+				uncheckedConsumer(outputStream -> outputStream.write("any content".getBytes())));
 		//no exception
+	}
+
+	private StoppableThread startNewThread(RunnableTask task) {
+		final StoppableThread result = new StoppableThread(task);
+		result.start();
+
+		createdThreads.add(result);
+
+		await()
+				.atMost(THREE_SECONDS)
+				.until(() -> result.isRunning());
+		return result;
 	}
 
 	private ClientHandler failingClientHandler() {
@@ -151,11 +172,10 @@ public class ConnectionPoolTest {
 		};
 	}
 
-	private void writeDataToServer(String host, int port, String data) throws Exception {
+	private void writeDataToServer(String host, int port, Consumer<OutputStream> dataWriter) throws Exception {
 		try(Socket clientSocket = new Socket(host, port)) {
 			OutputStream os = clientSocket.getOutputStream();
-			os.write(data.getBytes());
-			os.flush();
+			dataWriter.accept(os);
 		}
 	}
 

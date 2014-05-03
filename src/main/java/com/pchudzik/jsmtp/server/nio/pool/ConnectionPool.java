@@ -63,6 +63,11 @@ class ConnectionPool implements RunnableTask {
 	}
 
 	@Override
+	public void onClose() {
+		clientSelector.wakeup();
+	}
+
+	@Override
 	public void run() {
 		int selectedKeys = 0;
 		try {
