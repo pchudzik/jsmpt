@@ -13,19 +13,19 @@ import static org.mockito.Mockito.verify;
  * Created by pawel on 23.04.14.
  */
 public class RcptToCommandTest extends AddressExtractingCommandTest {
-	final RcptToCommand rcptToCommand = new RcptToCommand();
+	final RcptToCommandFactory rcptToCommandFactory = new RcptToCommandFactory();
 
 	@DataProvider(name = rejectionEmailsDataProvider)
 	@Override
 	Object[][] rejectionEmailsDataProvider() {
 		return new Object[][] {
 				{
-						rcptToCommand,
+						rcptToCommandFactory,
 						new Command("rcpt to: " + wrongAddress),
 						SmtpResponse.MAIL_BOX_NOT_AVAILABLE,
 						"Invalid email address"
 				}, {
-						rcptToCommand,
+				rcptToCommandFactory,
 						new Command("rcpt to:"),
 						SmtpResponse.MAIL_BOX_NOT_AVAILABLE,
 						"Invalid email address"
@@ -35,7 +35,9 @@ public class RcptToCommandTest extends AddressExtractingCommandTest {
 
 	@Test
 	public void shouldAddNewRecipient() throws Exception {
-		rcptToCommand.executeCommand(clientConnection, new Command("rcpt to:" + email));
+		rcptToCommandFactory
+				.create(clientConnection, new Command("rcpt to:" + email))
+				.executeCommand();
 
 		verify(mailTx).addRecipient(new InternetAddress(email));
 	}

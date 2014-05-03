@@ -17,19 +17,19 @@ import static org.mockito.Mockito.verify;
  * Time: 21:37
  */
 public class MailFromCommandTest extends AddressExtractingCommandTest {
-	final MailFromCommand mailFromCommand = new MailFromCommand();
+	final MailFromCommandFactory mailFromCommandFactory = new MailFromCommandFactory();
 
 	@DataProvider(name = rejectionEmailsDataProvider)
 	@Override
 	Object[][] rejectionEmailsDataProvider() {
 		return new Object[][] {
 				{
-						mailFromCommand,
+						mailFromCommandFactory,
 						new Command("mail from: <wrong address>"),
 						SmtpResponse.MAIL_BOX_NOT_AVAILABLE,
 						"Invalid email address"
 				}, {
-						mailFromCommand,
+				mailFromCommandFactory,
 						new Command("mail from:"),
 						SmtpResponse.MAIL_BOX_NOT_AVAILABLE,
 						"Invalid email address"
@@ -39,14 +39,14 @@ public class MailFromCommandTest extends AddressExtractingCommandTest {
 
 	@Test
 	public void shouldResetMailTransaction() throws Exception {
-		mailFromCommand.executeCommand(clientConnection, new Command("mail from: " + email));
+		mailFromCommandFactory.create(clientConnection, new Command("mail from: " + email)).executeCommand();
 
 		verify(mailTx).reset();
 	}
 
 	@Test
 	public void shouldSetEmailAddressInTransaction() throws Exception {
-		CommandResponse response = mailFromCommand.executeCommand(clientConnection, new Command("mail from: " + email));
+		CommandResponse response = mailFromCommandFactory.create(clientConnection, new Command("mail from: " + email)).executeCommand();
 
 		verify(mailTx).setFrom(new InternetAddress(email));
 		CommandResponseAssert.assertThat(response)

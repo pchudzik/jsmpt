@@ -15,12 +15,12 @@ import static org.mockito.Mockito.mock;
 public class HeloCommandTest {
 	private final String domainName = "example.com";
 	private final ClientConnection clientConnection = mock(ClientConnection.class);
-	private final HeloCommand heloCommand = new HeloCommand(new ServerConfiguration()
+	private final HeloCommandFactory heloCommandFactory = new HeloCommandFactory(new ServerConfiguration()
 			.setListenAddress(domainName));
 
 	@Test
 	public void shouldRespondWithHelloMessageOnValidDomain() throws Exception {
-		CommandResponse response = heloCommand.executeCommand(clientConnection, new Command("helo " + domainName));
+		CommandResponse response = heloCommandFactory.create(clientConnection, new Command("helo " + domainName)).executeCommand();
 
 		CommandResponseAssert.assertThat(response)
 				.hasSmtpResponse(SmtpResponse.OK)
@@ -31,8 +31,8 @@ public class HeloCommandTest {
 	public void shouldCloseClientConnectionOnInvalidDomain() throws Exception {
 		final String invalidDomain = "invalid-domain.com";
 
-		catchException(heloCommand)
-				.executeCommand(clientConnection, new Command("helo " + invalidDomain));
+		catchException(heloCommandFactory.create(clientConnection, new Command("helo " + invalidDomain)))
+				.executeCommand();
 
 		CommandExecutionExceptionAssert.assertThat(caughtException())
 				.isCritical()

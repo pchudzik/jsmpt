@@ -6,14 +6,14 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 /**
  * Created by pawel on 15.04.14.
  */
-class NoopCommand implements CommandAction {
+class NoopCommandFactory implements CommandActionFactory {
 	@Override
 	public boolean canExecute(Command command) {
 		return command.getCommandString().startsWith("noop");
 	}
 
 	@Override
-	public CommandResponse executeCommand(ClientConnection clientConnection, Command command) throws CommandExecutionException {
-		return CommandResponse.commandResponse(SmtpResponse.OK);
+	public CommandAction create(ClientConnection clientConnection, Command command) {
+		return () -> CommandResponse.commandResponse(SmtpResponse.OK);
 	}
 }

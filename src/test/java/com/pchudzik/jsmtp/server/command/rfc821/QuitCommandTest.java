@@ -24,8 +24,9 @@ public class QuitCommandTest {
 		final ClientConnection clientConnection = mock(ClientConnection.class);
 		when(clientConnection.getWriter()).thenReturn(new StringWriter());
 
-		CommandResponse response = new QuitCommand(new ServerConfiguration().setListenAddress(domain))
-				.executeCommand(clientConnection, new Command("quit"));
+		CommandResponse response = new QuitCommandFactory(new ServerConfiguration().setListenAddress(domain))
+				.create(clientConnection, new Command("quit"))
+				.executeCommand();
 		response.execute(clientConnection);
 
 		CommandResponseAssert.assertThat(response)
