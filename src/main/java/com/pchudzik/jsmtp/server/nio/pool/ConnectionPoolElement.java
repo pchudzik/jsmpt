@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
  * Date: 06.04.14
  * Time: 18:10
  */
-class ConnectionPool implements RunnableTask {
-	private static final Logger log = LoggerFactory.getLogger(ConnectionPool.class);
+class ConnectionPoolElement implements RunnableTask {
+	private static final Logger log = LoggerFactory.getLogger(ConnectionPoolElement.class);
 
 	private final int selectionOperation;
 	private final ConnectionPoolConfiguration connectionPoolConfiguration;
@@ -34,7 +34,7 @@ class ConnectionPool implements RunnableTask {
 	private final Selector clientSelector;
 	private final LinkedBlockingQueue<SocketChannel> incomingConnectionsQueue;
 
-	public ConnectionPool(ConnectionPoolConfiguration connectionPoolConfiguration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
+	public ConnectionPoolElement(ConnectionPoolConfiguration connectionPoolConfiguration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
 		this.selectionOperation = SelectionKey.OP_READ;
 		this.connectionPoolConfiguration = connectionPoolConfiguration;
 		this.clientHandler = clientHandler;

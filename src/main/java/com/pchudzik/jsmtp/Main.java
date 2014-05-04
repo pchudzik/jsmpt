@@ -1,13 +1,16 @@
-package com.pchudzik.jsmtp.server.nio.pool;
+package com.pchudzik.jsmtp;
 
 import java.io.IOException;
-import java.nio.channels.SelectionKey;
 
 import com.pchudzik.jsmtp.common.StoppableThread;
 import com.pchudzik.jsmtp.common.TimeProvider;
+import com.pchudzik.jsmtp.server.nio.ConnectionsAcceptingServer;
 import com.pchudzik.jsmtp.server.ServerConfiguration;
 import com.pchudzik.jsmtp.server.SmtpClientHandler;
 import com.pchudzik.jsmtp.server.command.rfc821.CommandRegistry;
+import com.pchudzik.jsmtp.server.nio.pool.ConnectionPoolConfiguration;
+import com.pchudzik.jsmtp.server.nio.pool.ConnectionPoolElement;
+import com.pchudzik.jsmtp.server.nio.pool.ConnectionsRegistry;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
 
 /**
@@ -22,13 +25,13 @@ public class Main {
 
 		final CommandRegistry commandRegistry = new CommandRegistry(serverConfiguration);
 		final ConnectionsRegistry connectionsRegistry = new ConnectionsRegistry(timeProvider);
-		final ConnectionPool connectionPool = new ConnectionPool(
+		final ConnectionPoolElement connectionPoolElement = new ConnectionPoolElement(
 				new ConnectionPoolConfiguration("cnnection pool"),
 				new ClientConnectionFactory(timeProvider, connectionsRegistry),
 				new SmtpClientHandler(commandRegistry));
-		final ConnectionsAcceptingServer server = new ConnectionsAcceptingServer("localhost", 9099, connectionPool);
+		final ConnectionsAcceptingServer server = new ConnectionsAcceptingServer("localhost", 9099, connectionPoolElement);
 		new StoppableThread(connectionsRegistry, "connection registry").start();
-		new StoppableThread(connectionPool, "connection pool").start();
+		new StoppableThread(connectionPoolElement, "connection pool").start();
 		new StoppableThread(server, "connections accepting thread").start();
 
 		System.out.println("On and running");

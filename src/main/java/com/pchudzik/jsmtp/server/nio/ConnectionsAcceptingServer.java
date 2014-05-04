@@ -1,4 +1,4 @@
-package com.pchudzik.jsmtp.server.nio.pool;
+package com.pchudzik.jsmtp.server.nio;
 
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -6,9 +6,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
 
 import com.pchudzik.jsmtp.common.RunnableTask;
+import com.pchudzik.jsmtp.server.nio.pool.IConnectionPool;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,17 +18,17 @@ import lombok.extern.slf4j.Slf4j;
 public class ConnectionsAcceptingServer implements RunnableTask {
 	private int port = -1;
 	private final String host;
-	private final ConnectionPool connectionPool;
+	private final IConnectionPool connectionPool;
 
 	private ServerSocketChannel serverSocketChannel;
 	private ServerSocket serverSocket;
 	private Selector serverSelector;
 
-	public ConnectionsAcceptingServer(ConnectionPool connectionPool) {
+	public ConnectionsAcceptingServer(IConnectionPool connectionPool) {
 		this("localhost", selectPort(), connectionPool);
 	}
 
-	public ConnectionsAcceptingServer(String host, int port, ConnectionPool connectionPool) {
+	public ConnectionsAcceptingServer(String host, int port, IConnectionPool connectionPool) {
 		this.port = port;
 		this.host = host;
 		this.connectionPool = connectionPool;

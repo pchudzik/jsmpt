@@ -22,6 +22,8 @@ import com.jayway.awaitility.Duration;
 import com.pchudzik.jsmtp.common.FakeTimeProvider;
 import com.pchudzik.jsmtp.common.RunnableTask;
 import com.pchudzik.jsmtp.common.StoppableThread;
+import com.pchudzik.jsmtp.server.ClientHandler;
+import com.pchudzik.jsmtp.server.nio.ConnectionsAcceptingServer;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +38,7 @@ import org.testng.annotations.Test;
  * Time: 16:21
  */
 @Slf4j
-public class ConnectionPoolTest {
+public class ConnectionPoolElementTest {
 	private static final Duration THREE_SECONDS = new Duration(3, TimeUnit.SECONDS);
 	private final LinkedList<StoppableThread> createdThreads = Lists.newLinkedList();
 
@@ -64,7 +66,7 @@ public class ConnectionPoolTest {
 
 	@Test
 	public void shouldRejectClientsIfIncomingConnectionsQueueExceeded() throws Exception {
-		final ConnectionPool connectionPool = doNothingConnectionPool(doNothingHandler());
+		final IConnectionPool connectionPool = doNothingConnectionPool(doNothingHandler());
 
 		connectionPool.registerClient(mock(SocketChannel.class));
 
@@ -79,16 +81,16 @@ public class ConnectionPoolTest {
 		final String anyString = "ala ma kota";
 		final StringBuilder receivedString = new StringBuilder();
 
-		final ConnectionPool connectionPool = new ConnectionPool(new ConnectionPoolConfiguration("reading server"), connectionFactory, clientConnection -> {
+		final ConnectionPoolElement connectionPoolElement = new ConnectionPoolElement(new ConnectionPoolConfiguration("reading server"), connectionFactory, clientConnection -> {
 			try (Reader userDataReader = clientConnection.getReader()) {
 				receivedString.append(IOUtils.toString(userDataReader));
 			} catch (Exception ex) {
 				throw new RuntimeException(ex);
 			}
 		});
-		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
+		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPoolElement);
 
-		startNewThread(connectionPool);
+		startNewThread(connectionPoolElement);
 		startNewThread(connectionsAcceptingServer);
 
 		writeDataToServer(
@@ -109,9 +111,9 @@ public class ConnectionPoolTest {
 
 	@Test
 	public void clientHandlerExceptionOnProcessClientShouldNotDestroyThread() throws Exception {
-		final ConnectionPool connectionPool = doNothingConnectionPool(failingClientHandler());
+		final IConnectionPool IConnectionPool = doNothingConnectionPool(failingClientHandler());
 
-		catchException(connectionPool).registerClient(mock(SocketChannel.class));
+		catchException(IConnectionPool).registerClient(mock(SocketChannel.class));
 
 		assertThat((Exception)caughtException()).isNull();
 	}
@@ -130,13 +132,13 @@ public class ConnectionPoolTest {
 			}
 		};
 
-		ConnectionPool connectionPool = new ConnectionPool(
+		ConnectionPoolElement connectionPoolElement = new ConnectionPoolElement(
 				new ConnectionPoolConfiguration("anyName"),
 				clientConnectionFactory, failingClient);
 
-		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPool);
+		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPoolElement);
 
-		startNewThread(connectionPool);
+		startNewThread(connectionPoolElement);
 		startNewThread(connectionsAcceptingServer);
 
 		writeDataToServer(
@@ -183,8 +185,8 @@ public class ConnectionPoolTest {
 		return handler -> {};
 	}
 
-	private ConnectionPool doNothingConnectionPool(ClientHandler clientHandler) throws IOException {
-		return new DoNothingConnectionPool(
+	private IConnectionPool doNothingConnectionPool(ClientHandler clientHandler) throws IOException {
+		return new DoNothingConnectionPoolElement(
 				new ConnectionPoolConfiguration("accept thread")
 						.setNewClientsQueueSize(1)
 						.setNewClientRegisterTimeout(1),
@@ -193,8 +195,8 @@ public class ConnectionPoolTest {
 		);
 	}
 
-	private static class DoNothingConnectionPool extends ConnectionPool {
-		public DoNothingConnectionPool(ConnectionPoolConfiguration connectionPoolConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
+	private static class DoNothingConnectionPoolElement extends ConnectionPoolElement {
+		public DoNothingConnectionPoolElement(ConnectionPoolConfiguration connectionPoolConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
 			super(connectionPoolConfiguration, connectionFactory, clientHandler);
 		}
 
