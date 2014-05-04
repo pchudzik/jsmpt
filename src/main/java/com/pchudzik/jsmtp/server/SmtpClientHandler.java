@@ -11,7 +11,6 @@ import com.pchudzik.jsmtp.server.command.CommandResponse.ClientAction;
 import com.pchudzik.jsmtp.server.command.rfc821.CommandRegistry;
 import com.pchudzik.jsmtp.server.command.rfc821.ContextConstant;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
-import com.pchudzik.jsmtp.server.nio.pool.ClientHandler;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 /**

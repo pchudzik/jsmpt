@@ -3,6 +3,7 @@ package com.pchudzik.jsmtp.server.nio.pool;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.pchudzik.jsmtp.common.RunnableTask;
+import com.pchudzik.jsmtp.server.ClientHandler;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * Date: 06.04.14
  * Time: 18:10
  */
-class ConnectionPoolElement implements RunnableTask {
+class ConnectionPoolElement implements RunnableTask, ConnectionPool {
 	private static final Logger log = LoggerFactory.getLogger(ConnectionPoolElement.class);
 
 	private final int selectionOperation;
@@ -44,6 +45,7 @@ class ConnectionPoolElement implements RunnableTask {
 		this.clientSelector = Selector.open();
 	}
 
+	@Override
 	public void registerClient(SocketChannel newClient) throws ClientRejectedException {
 		try {
 			final boolean accepted = incomingConnectionsQueue.offer(

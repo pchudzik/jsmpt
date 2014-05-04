@@ -66,7 +66,7 @@ public class ConnectionPoolElementTest {
 
 	@Test
 	public void shouldRejectClientsIfIncomingConnectionsQueueExceeded() throws Exception {
-		final IConnectionPool connectionPool = doNothingConnectionPool(doNothingHandler());
+		final ConnectionPool connectionPool = doNothingConnectionPool(doNothingHandler());
 
 		connectionPool.registerClient(mock(SocketChannel.class));
 
@@ -111,9 +111,9 @@ public class ConnectionPoolElementTest {
 
 	@Test
 	public void clientHandlerExceptionOnProcessClientShouldNotDestroyThread() throws Exception {
-		final IConnectionPool IConnectionPool = doNothingConnectionPool(failingClientHandler());
+		final ConnectionPool ConnectionPool = doNothingConnectionPool(failingClientHandler());
 
-		catchException(IConnectionPool).registerClient(mock(SocketChannel.class));
+		catchException(ConnectionPool).registerClient(mock(SocketChannel.class));
 
 		assertThat((Exception)caughtException()).isNull();
 	}
@@ -185,7 +185,7 @@ public class ConnectionPoolElementTest {
 		return handler -> {};
 	}
 
-	private IConnectionPool doNothingConnectionPool(ClientHandler clientHandler) throws IOException {
+	private ConnectionPoolElement doNothingConnectionPool(ClientHandler clientHandler) throws IOException {
 		return new DoNothingConnectionPoolElement(
 				new ConnectionPoolConfiguration("accept thread")
 						.setNewClientsQueueSize(1)

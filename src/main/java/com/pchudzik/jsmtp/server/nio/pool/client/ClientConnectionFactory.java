@@ -1,8 +1,6 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import com.pchudzik.jsmtp.common.TimeProvider;
-import com.pchudzik.jsmtp.server.command.rfc821.ContextConstant;
-import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.ClientRejectedException;
 import com.pchudzik.jsmtp.server.nio.pool.ConnectionsRegistry;
 
