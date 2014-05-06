@@ -25,7 +25,7 @@ class HeloCommandFactory implements CommandActionFactory {
 			final String domain = parseDomain(command);
 //			if(domain.equals(serverConfiguration.getListenAddress())) {
 				return CommandResponse.commandResponse()
-						.responseMessage(domain)
+						.responseMessage("HELO " + domain)
 						.response(SmtpResponse.OK)
 						.build();
 //			} else {

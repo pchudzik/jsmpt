@@ -138,6 +138,7 @@ class ConnectionPoolElement implements RunnableTask, ConnectionPool {
 	private void processSingleClientData(SelectionKey selectionKey) {
 		final ClientConnection clientConnection = (ClientConnection) selectionKey.attachment();
 		try {
+			log.debug("New data from client {}", clientConnection.getId());
 			clientHandler.processClient(clientConnection);
 		} catch (Exception ex) {
 			log.warn("Unable to process client data", ex);

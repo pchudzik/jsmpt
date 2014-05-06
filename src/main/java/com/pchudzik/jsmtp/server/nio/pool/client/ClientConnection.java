@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
+import java.util.UUID;
 
 /**
  * User: pawel
@@ -21,6 +22,7 @@ public class ClientConnection {
 
 	private final TimeProvider timeProvider;
 	private final SelectionKey selectionKey;
+	@Getter private final String id = UUID.randomUUID().toString();
 
 	@Getter private final ClientContext clientContext;
 	@Setter private volatile Throwable brokenReason;

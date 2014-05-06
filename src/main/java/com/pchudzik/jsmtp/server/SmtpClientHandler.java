@@ -9,14 +9,17 @@ import com.pchudzik.jsmtp.server.command.rfc821.CommandRegistry;
 import com.pchudzik.jsmtp.server.command.rfc821.ContextConstant;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
 
 /**
  * Created by pawel on 27.04.14.
  */
+@Slf4j
 public class SmtpClientHandler implements ClientHandler {
 	private final CommandRegistry commandRegistry;
 
@@ -40,8 +43,10 @@ public class SmtpClientHandler implements ClientHandler {
 	public void processClient(ClientConnection clientConnection) throws IOException {
 		CommandResponse commandResponse = null;
 		try {
-			final CommandAction commandAction = commandRegistry.selectCommand(clientConnection);
-			commandResponse = commandAction.executeCommand();
+			final Optional<CommandAction> commandAction = commandRegistry.selectCommand(clientConnection);
+			if(commandAction.isPresent()) {
+				commandResponse = commandAction.get().executeCommand();
+			}
 		} catch (CommandExecutionException e) {
 			commandResponse = commandResponse()
 					.response(e.getSmtpResponse())
@@ -52,6 +57,7 @@ public class SmtpClientHandler implements ClientHandler {
 
 		if(commandResponse != null) {
 			commandResponse.execute(clientConnection);
+			log.debug("response for {} finished", clientConnection.getId());
 		}
 	}
 }

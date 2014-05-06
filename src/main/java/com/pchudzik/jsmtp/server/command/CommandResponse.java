@@ -1,17 +1,16 @@
 package com.pchudzik.jsmtp.server.command;
 
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+
 import java.io.IOException;
 import java.util.Optional;
-
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.experimental.Builder;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Created by pawel on 22.04.14.
  */
+@Slf4j
 public class CommandResponse {
 	protected SmtpResponse smtpResponse;
 	protected String responseMessage;
@@ -64,10 +63,15 @@ public class CommandResponse {
 
 	public void execute(ClientConnection clientConnection) throws IOException {
 		if(commandFinished) {
-			clientConnection.getWriter()
+			StringBuilder response = new StringBuilder()
 					.append(smtpResponse.getCode() + " ")
 					.append(StringUtils.isNotBlank(responseMessage) ? responseMessage : smtpResponse.toString())
 					.append("\n\r");
+			clientConnection.getWriter()
+					.append(response.toString())
+					.flush();
+
+			log.debug("send command {}", response);
 		}
 		clientAction.orElse(ClientAction.noAction).performAction();
 	}
