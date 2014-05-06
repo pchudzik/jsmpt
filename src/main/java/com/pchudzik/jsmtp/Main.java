@@ -1,16 +1,18 @@
 package com.pchudzik.jsmtp;
 
-import java.io.IOException;
-
 import com.pchudzik.jsmtp.common.RandomProvider;
 import com.pchudzik.jsmtp.common.StoppableThread;
 import com.pchudzik.jsmtp.common.TimeProvider;
-import com.pchudzik.jsmtp.server.nio.ConnectionsAcceptingServer;
 import com.pchudzik.jsmtp.server.ServerConfiguration;
 import com.pchudzik.jsmtp.server.SmtpClientHandler;
 import com.pchudzik.jsmtp.server.command.rfc821.CommandRegistry;
-import com.pchudzik.jsmtp.server.nio.pool.*;
+import com.pchudzik.jsmtp.server.nio.ConnectionsAcceptingServer;
+import com.pchudzik.jsmtp.server.nio.pool.ConnectionPoolConfiguration;
+import com.pchudzik.jsmtp.server.nio.pool.ConnectionsRegistry;
+import com.pchudzik.jsmtp.server.nio.pool.MultiConnectionPool;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
+
+import java.io.IOException;
 
 /**
  * Created by pawel on 27.04.14.
@@ -31,7 +33,7 @@ public class Main {
 				new ClientConnectionFactory(timeProvider, connectionsRegistry),
 				new SmtpClientHandler(commandRegistry));
 		final ConnectionsAcceptingServer server = new ConnectionsAcceptingServer("localhost", 9099, connectionPool);
-		connectionPool.initalize();
+		connectionPool.initialize();
 		new StoppableThread(connectionsRegistry, "connection registry").start();
 		new StoppableThread(server, "connections accepting thread").start();
 

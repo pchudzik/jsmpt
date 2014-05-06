@@ -5,8 +5,6 @@ import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import lombok.RequiredArgsConstructor;
 
-import static com.pchudzik.jsmtp.server.command.CommandExecutionException.criticalCommandExecutionException;
-
 /**
  * User: pawel
  * Date: 13.04.14
@@ -25,16 +23,16 @@ class HeloCommandFactory implements CommandActionFactory {
 	public CommandAction create(ClientConnection clientConnection, Command command) {
 		return () -> {
 			final String domain = parseDomain(command);
-			if(domain.equals(serverConfiguration.getListenAddress())) {
+//			if(domain.equals(serverConfiguration.getListenAddress())) {
 				return CommandResponse.commandResponse()
 						.responseMessage(domain)
 						.response(SmtpResponse.OK)
 						.build();
-			} else {
-				throw criticalCommandExecutionException(SmtpResponse.SERVICE_UNAVAILABLE)
-						.responseMessage(domain)
-						.build();
-			}
+//			} else {
+//				throw criticalCommandExecutionException(SmtpResponse.SERVICE_UNAVAILABLE)
+//						.responseMessage(domain)
+//						.build();
+//			}
 		};
 	}
 

@@ -1,5 +1,6 @@
 package com.pchudzik.jsmtp.server.command;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
@@ -17,5 +18,12 @@ public class Command {
 		Preconditions.checkArgument(StringUtils.isNotBlank(commandString));
 		this.originalCommandString = commandString;
 		this.commandString = commandString.trim().toLowerCase();
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+				.add("commandString", commandString)
+				.toString();
 	}
 }

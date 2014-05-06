@@ -1,17 +1,18 @@
 package com.pchudzik.jsmtp.server;
 
-import java.io.IOException;
-
-import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
-
 import com.pchudzik.jsmtp.server.command.CommandAction;
 import com.pchudzik.jsmtp.server.command.CommandExecutionException;
 import com.pchudzik.jsmtp.server.command.CommandResponse;
 import com.pchudzik.jsmtp.server.command.CommandResponse.ClientAction;
+import com.pchudzik.jsmtp.server.command.SmtpResponse;
 import com.pchudzik.jsmtp.server.command.rfc821.CommandRegistry;
 import com.pchudzik.jsmtp.server.command.rfc821.ContextConstant;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+
+import java.io.IOException;
+
+import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
 
 /**
  * Created by pawel on 27.04.14.
@@ -27,6 +28,12 @@ public class SmtpClientHandler implements ClientHandler {
 	public void onNewClientConnection(ClientConnection newClient) throws IOException {
 		newClient.getClientContext()
 				.put(ContextConstant.mail, new MailTransaction());
+
+		CommandResponse.commandResponse()
+				.response(SmtpResponse.HELLO)
+				.responseMessage("localhost Simple Mail Transfer Service Ready")
+				.build()
+				.execute(newClient);
 	}
 
 	@Override

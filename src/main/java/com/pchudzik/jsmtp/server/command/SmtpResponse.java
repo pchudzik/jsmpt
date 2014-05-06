@@ -4,6 +4,7 @@ package com.pchudzik.jsmtp.server.command;
  * Created by pawel on 14.04.14.
  */
 public enum SmtpResponse {
+	HELLO(220),
 	OK(250),
 	CLOSE(221),
 
