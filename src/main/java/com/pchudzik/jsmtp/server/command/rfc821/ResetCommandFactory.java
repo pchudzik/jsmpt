@@ -16,7 +16,7 @@ public class ResetCommandFactory implements CommandActionFactory {
 	public CommandAction create(ClientConnection clientConnection, Command command) {
 		return () -> {
 			ClientContextUtilsUtils.getMailTransaction(clientConnection).reset();
-			return CommandResponse.commandResponse(SmtpResponse.OK);
+			return CommandResponse.finishedOkResponse();
 		};
 	}
 }

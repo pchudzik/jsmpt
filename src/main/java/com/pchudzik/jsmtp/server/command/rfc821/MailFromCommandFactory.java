@@ -26,7 +26,7 @@ public class MailFromCommandFactory implements CommandActionFactory {
 
 			try {
 				mailTx.setFrom(AddressExtractor.getAddress(command));
-				return CommandResponse.commandResponse(SmtpResponse.OK);
+				return CommandResponse.finishedOkResponse();
 			} catch (AddressException ex) {
 				throw commandExecutionException(SmtpResponse.MAIL_BOX_NOT_AVAILABLE)
 						.responseMessage("Invalid email address")

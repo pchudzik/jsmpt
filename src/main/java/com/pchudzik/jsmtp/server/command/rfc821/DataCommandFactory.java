@@ -5,6 +5,7 @@ import java.io.Reader;
 
 import static com.pchudzik.jsmtp.server.command.CommandExecutionException.commandExecutionException;
 import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
+import static com.pchudzik.jsmtp.server.command.CommandResponse.finishedOkResponse;
 
 import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
@@ -52,10 +53,11 @@ public class DataCommandFactory implements CommandActionFactory {
 			final boolean isFinished = readDataFromClient(clientReader, mailTx);
 			if (isFinished) {
 				mailTx.userDataFinished();
-				return commandResponse(SmtpResponse.OK);
+				return finishedOkResponse();
 			}
 
 			return commandResponse()
+					.response(SmtpResponse.OK)
 					.commandFinished(isFinished)
 					.build();
 		}

@@ -22,6 +22,8 @@ public class UnsupportedCommandFactory implements CommandActionFactory {
 	@Override
 	public CommandAction create(ClientConnection clientConnection, Command command) {
 		log.debug("Unsupported command " + command);
-		return () -> commandResponse(SmtpResponse.MAIL_BOX_NOT_AVAILABLE);
+		return () -> commandResponse()
+				.response(SmtpResponse.MAIL_BOX_NOT_AVAILABLE)
+				.build();
 	}
 }

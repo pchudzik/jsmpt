@@ -14,6 +14,6 @@ class NoopCommandFactory implements CommandActionFactory {
 
 	@Override
 	public CommandAction create(ClientConnection clientConnection, Command command) {
-		return () -> CommandResponse.commandResponse(SmtpResponse.OK);
+		return () -> CommandResponse.finishedOkResponse();
 	}
 }
