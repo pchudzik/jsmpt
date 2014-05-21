@@ -1,9 +1,5 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
-import com.pchudzik.jsmtp.common.TimeProvider;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Writer;
@@ -11,6 +7,10 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.UUID;
+
+import com.pchudzik.jsmtp.common.TimeProvider;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * User: pawel

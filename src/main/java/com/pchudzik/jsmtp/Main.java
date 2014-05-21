@@ -29,7 +29,7 @@ public class Main {
 		final ConnectionsRegistry connectionsRegistry = new ConnectionsRegistry(timeProvider);
 		final MultiConnectionPool connectionPool = new MultiConnectionPool(
 				randomProvider,
-				new ConnectionPoolConfiguration("cnnection pool"),
+				new ConnectionPoolConfiguration("cnnection pool").setConnectionPoolsSize(5),
 				new ClientConnectionFactory(timeProvider, connectionsRegistry),
 				new SmtpClientHandler(commandRegistry));
 		final ConnectionsAcceptingServer server = new ConnectionsAcceptingServer("localhost", 9099, connectionPool);

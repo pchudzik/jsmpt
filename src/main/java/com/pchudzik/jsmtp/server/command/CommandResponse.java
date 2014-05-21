@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
+import java.security.cert.CRL;
 import java.util.Optional;
 
 /**
@@ -12,6 +13,8 @@ import java.util.Optional;
  */
 @Slf4j
 public class CommandResponse {
+	private static final String CRLF = "\r\n";
+
 	protected SmtpResponse smtpResponse;
 	protected String responseMessage;
 	Optional<ClientAction> clientAction = Optional.empty();
@@ -66,7 +69,7 @@ public class CommandResponse {
 			StringBuilder response = new StringBuilder()
 					.append(smtpResponse.getCode() + " ")
 					.append(StringUtils.isNotBlank(responseMessage) ? responseMessage : smtpResponse.toString())
-					.append("\n\r");
+					.append(CRLF);
 			clientConnection.getWriter()
 					.append(response.toString())
 					.flush();
