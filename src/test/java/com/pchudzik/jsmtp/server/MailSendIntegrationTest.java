@@ -1,5 +1,12 @@
 package com.pchudzik.jsmtp.server;
 
+import javax.mail.Message;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.Properties;
+
 import com.pchudzik.jsmtp.common.RandomProvider;
 import com.pchudzik.jsmtp.common.StoppableThread;
 import com.pchudzik.jsmtp.common.TimeProvider;
@@ -14,19 +21,11 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import java.net.InetAddress;
-import java.util.Properties;
-
 /**
  * Created by pawel on 06.05.14.
  */
 public class MailSendIntegrationTest {
-	private String mailHost;
+	private final String mailHost = "localhost";
 	private final int mailPort = 9099;
 
 	private StoppableThread connectionsRegistryThread;
@@ -36,8 +35,6 @@ public class MailSendIntegrationTest {
 	@SneakyThrows
 	@BeforeClass
 	public void setupServer() {
-		mailHost = InetAddress.getLocalHost().getHostName();
-
 		final TimeProvider timeProvider = new TimeProvider();
 		final RandomProvider randomProvider = new RandomProvider();
 

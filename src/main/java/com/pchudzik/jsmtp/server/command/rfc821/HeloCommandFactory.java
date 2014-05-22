@@ -1,7 +1,5 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
-import static com.pchudzik.jsmtp.server.command.CommandExecutionException.criticalCommandExecutionException;
-
 import com.pchudzik.jsmtp.server.ServerConfiguration;
 import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
@@ -23,22 +21,9 @@ class HeloCommandFactory implements CommandActionFactory {
 
 	@Override
 	public CommandAction create(ClientConnection clientConnection, Command command) {
-		return () -> {
-			final String domain = parseDomain(command);
-			if(domain.equals(serverConfiguration.getListenAddress())) {
-				return CommandResponse.commandResponse()
-						.responseMessage(domain)
-						.response(SmtpResponse.OK)
-						.build();
-			} else {
-				throw criticalCommandExecutionException(SmtpResponse.SERVICE_UNAVAILABLE)
-						.responseMessage(domain)
-						.build();
-			}
-		};
-	}
-
-	private String parseDomain(Command command) {
-		return command.getCommandString().replaceFirst("helo", "").trim();
+		return () -> CommandResponse.commandResponse()
+				.responseMessage(serverConfiguration.getListenAddress())
+				.response(SmtpResponse.OK)
+				.build();
 	}
 }
