@@ -10,7 +10,7 @@ import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 /**
  * Created by pawel on 23.04.14.
  */
-public class ResetCommandFactory implements CommandActionFactory {
+public class ResetCommandFactory implements CommandActionFactory, ContextAware {
 	@Override
 	public boolean canExecute(Command command) {
 		return command.getCommandString().startsWith("reset");
@@ -19,7 +19,7 @@ public class ResetCommandFactory implements CommandActionFactory {
 	@Override
 	public CommandAction create(ClientConnection clientConnection, Command command) {
 		return () -> {
-			ContextAware.getMailTransaction(clientConnection).reset();
+			getMailTransaction(clientConnection).reset();
 			return CommandResponse.finishedOkResponse();
 		};
 	}

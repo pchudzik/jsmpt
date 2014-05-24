@@ -30,13 +30,13 @@ public class DataCommandFactory implements CommandActionFactory {
 	}
 
 	@RequiredArgsConstructor
-	static class DataCommandAction implements CommandAction {
+	static class DataCommandAction implements CommandAction, ContextAware {
 		static final String commandEnd = ".";
 		private final ClientConnection clientConnection;
 
 		@Override
 		public CommandResponse executeCommand() throws CommandExecutionException {
-			final MailTransaction mailTx = ContextAware.getMailTransaction(clientConnection);
+			final MailTransaction mailTx = getMailTransaction(clientConnection);
 			if (mailTx.dataInProgress()) {
 				return readMoreDataFromClient(clientConnection.getReader(), mailTx);
 			} else {
