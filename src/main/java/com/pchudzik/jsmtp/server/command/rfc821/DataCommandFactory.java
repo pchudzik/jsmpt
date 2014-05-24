@@ -8,6 +8,8 @@ import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
 import static com.pchudzik.jsmtp.server.command.CommandResponse.finishedOkResponse;
 
 import com.pchudzik.jsmtp.server.command.*;
+import com.pchudzik.jsmtp.server.command.common.ContextAware;
+import com.pchudzik.jsmtp.server.command.common.ContextConstant;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,7 @@ public class DataCommandFactory implements CommandActionFactory {
 
 		@Override
 		public CommandResponse executeCommand() throws CommandExecutionException {
-			final MailTransaction mailTx = ClientContextUtilsUtils.getMailTransaction(clientConnection);
+			final MailTransaction mailTx = ContextAware.getMailTransaction(clientConnection);
 			if (mailTx.dataInProgress()) {
 				return readMoreDataFromClient(clientConnection.getReader(), mailTx);
 			} else {

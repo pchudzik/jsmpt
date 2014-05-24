@@ -1,10 +1,11 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
+import java.util.Collection;
+
 import static java.util.Arrays.asList;
 
-import com.google.common.collect.Lists;
 import com.pchudzik.jsmtp.server.ServerConfiguration;
-import com.pchudzik.jsmtp.server.command.UnsupportedCommandFactory;
+import com.pchudzik.jsmtp.server.command.CommandActionFactory;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -14,18 +15,14 @@ import lombok.RequiredArgsConstructor;
 public class Rfc821Configuration {
 	private final ServerConfiguration serverConfiguration;
 
-	public Rfc821CommandRegistry commandRegistry() {
-		return new Rfc821CommandRegistry(
-				Lists.newLinkedList(asList(
-						new DataCommandFactory(),
-						new HeloCommandFactory(serverConfiguration),
-						new MailFromCommandFactory(),
-						new NoopCommandFactory(),
-						new QuitCommandFactory(serverConfiguration),
-						new RcptToCommandFactory(),
-						new ResetCommandFactory(),
-						new UnsupportedCommandFactory()	//FIXME this command should be initialized in proper way
-				))
-		);
+	public Collection<? extends CommandActionFactory> getCommands() {
+		return asList(
+				new DataCommandFactory(),
+				new HeloCommandFactory(serverConfiguration),
+				new MailFromCommandFactory(),
+				new NoopCommandFactory(),
+				new QuitCommandFactory(serverConfiguration),
+				new RcptToCommandFactory(),
+				new ResetCommandFactory());
 	}
 }

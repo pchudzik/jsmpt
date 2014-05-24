@@ -3,8 +3,7 @@ package com.pchudzik.jsmtp.server;
 import com.pchudzik.jsmtp.common.RandomProvider;
 import com.pchudzik.jsmtp.common.StoppableThread;
 import com.pchudzik.jsmtp.common.TimeProvider;
-import com.pchudzik.jsmtp.server.command.rfc821.Rfc821CommandRegistry;
-import com.pchudzik.jsmtp.server.command.rfc821.Rfc821Configuration;
+import com.pchudzik.jsmtp.server.command.CommandRegistry;
 import com.pchudzik.jsmtp.server.nio.ConnectionsAcceptingServer;
 import com.pchudzik.jsmtp.server.nio.pool.MultiConnectionPool;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
@@ -42,13 +41,12 @@ public class Server {
 		private MultiConnectionPool connectionPool;
 
 		void initialize() {
-			final Rfc821CommandRegistry commandRegistry = new Rfc821Configuration(serverConfiguration).commandRegistry();
 			connectionsRegistry = new ConnectionsRegistry(serverConfiguration, timeProvider);
 			connectionPool = new MultiConnectionPool(
 					serverConfiguration,
 					randomProvider,
 					new ClientConnectionFactory(timeProvider, connectionsRegistry),
-					new SmtpClientHandler(commandRegistry));
+					new SmtpClientHandler(new CommandRegistry(serverConfiguration)));
 			server = new ConnectionsAcceptingServer(serverConfiguration.getListenAddress(), serverConfiguration.getPort(), connectionPool);
 
 			connectionsRegistryThread = new StoppableThread(connectionsRegistry, "connection registry");

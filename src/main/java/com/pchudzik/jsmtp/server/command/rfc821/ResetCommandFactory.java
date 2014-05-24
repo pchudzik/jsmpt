@@ -4,6 +4,7 @@ import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.command.CommandAction;
 import com.pchudzik.jsmtp.server.command.CommandActionFactory;
 import com.pchudzik.jsmtp.server.command.CommandResponse;
+import com.pchudzik.jsmtp.server.command.common.ContextAware;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 /**
@@ -18,7 +19,7 @@ public class ResetCommandFactory implements CommandActionFactory {
 	@Override
 	public CommandAction create(ClientConnection clientConnection, Command command) {
 		return () -> {
-			ClientContextUtilsUtils.getMailTransaction(clientConnection).reset();
+			ContextAware.getMailTransaction(clientConnection).reset();
 			return CommandResponse.finishedOkResponse();
 		};
 	}

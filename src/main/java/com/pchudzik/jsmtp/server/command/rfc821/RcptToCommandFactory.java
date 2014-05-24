@@ -2,7 +2,7 @@ package com.pchudzik.jsmtp.server.command.rfc821;
 
 import javax.mail.internet.AddressException;
 
-import static com.pchudzik.jsmtp.server.command.rfc821.ClientContextUtilsUtils.getMailTransaction;
+import static com.pchudzik.jsmtp.server.command.common.ContextAware.getMailTransaction;
 
 import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;

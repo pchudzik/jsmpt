@@ -1,4 +1,4 @@
-package com.pchudzik.jsmtp.server.command.rfc821;
+package com.pchudzik.jsmtp.server.command.common;
 
 /**
  * User: pawel
