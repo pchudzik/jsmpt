@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.google.common.collect.Lists;
+import com.pchudzik.jsmtp.api.EmailDeliverer;
 import com.pchudzik.jsmtp.server.ServerConfiguration;
 import com.pchudzik.jsmtp.server.command.common.ContextAware;
 import com.pchudzik.jsmtp.server.command.rfc821.Rfc821Configuration;
@@ -20,8 +21,8 @@ import org.apache.commons.lang.StringUtils;
 public class CommandRegistry implements ContextAware {
 	private final List<CommandActionFactory> availableCommands = Lists.newLinkedList();
 
-	public CommandRegistry(ServerConfiguration serverConfiguration) {
-		availableCommands.addAll(new Rfc821Configuration(serverConfiguration).getCommands());
+	public CommandRegistry(ServerConfiguration serverConfiguration, EmailDeliverer emailDeliverer) {
+		availableCommands.addAll(new Rfc821Configuration(serverConfiguration, emailDeliverer).getCommands());
 
 		availableCommands.add(new UnsupportedCommandFactory());
 	}

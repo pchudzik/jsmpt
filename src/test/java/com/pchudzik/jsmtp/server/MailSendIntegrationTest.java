@@ -7,6 +7,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
+import static java.util.Arrays.asList;
+
+import com.pchudzik.jsmtp.api.EmailMessage;
+import com.pchudzik.jsmtp.api.EmailMessageAssert;
 import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
 import lombok.SneakyThrows;
 import org.testng.annotations.AfterClass;
@@ -21,6 +25,7 @@ public class MailSendIntegrationTest {
 	private final int mailPort = 9099;
 
 	private Server server;
+	private EmailMessage latestMessage;
 
 	@SneakyThrows
 	@BeforeClass
@@ -31,6 +36,7 @@ public class MailSendIntegrationTest {
 							.port(mailPort)
 							.connectionPoolConfiguration(ConnectionPoolConfiguration.defaults)
 							.build())
+					.emailDeliverer(message -> latestMessage = message)
 					.withShutdownHook(false)
 					.build();
 		server.start();
@@ -43,6 +49,10 @@ public class MailSendIntegrationTest {
 
 	@Test
 	public void shouldSendEmail() throws Exception {
+		final String fromAddress = "from@example.com";
+		final String toAddress = "to@example.com";
+		final String data = "message content";
+
 		final Properties props = new Properties();
 		props.put("mail.smtp.host", mailHost);
 		props.put("mail.smtp.port", mailPort);
@@ -50,11 +60,16 @@ public class MailSendIntegrationTest {
 		final Session session = Session.getDefaultInstance(props);
 
 		final Message msg = new MimeMessage(session);
-		msg.setFrom(new InternetAddress("from@example.com"));
-		msg.addRecipient(Message.RecipientType.TO, new InternetAddress("to@example.com"));
+		msg.setFrom(new InternetAddress(fromAddress));
+		msg.addRecipient(Message.RecipientType.TO, new InternetAddress(toAddress));
 		msg.setSubject("subject");
-		msg.setText("content");
+		msg.setText(data);
 
 		Transport.send(msg);
+
+		EmailMessageAssert.assertThat(latestMessage)
+				.fromAddress(new InternetAddress(fromAddress))
+				.receipients(asList(new InternetAddress(toAddress)))
+				.dataContains(data);
 	}
 }

@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+import com.pchudzik.jsmtp.api.EmailDeliverer;
 import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.ClientRejectedException;
@@ -19,16 +20,18 @@ import org.testng.annotations.Test;
 public class DataCommandTest {
 	protected ClientConnection clientConnection;
 	protected MailTransaction mailTxMock;
+	protected EmailDeliverer emailDeliverer;
 
 	@BeforeMethod
 	public void setupClient() throws ClientRejectedException {
 		clientConnection = mock(ClientConnection.class);
+		emailDeliverer = mock(EmailDeliverer.class);
 		mailTxMock = newTransactionForClient(clientConnection);
 	}
 
 	@Test
 	public void shouldInitializeUserInput() throws CommandExecutionException {
-		CommandResponse response = new DataCommandFactory()
+		CommandResponse response = new DataCommandFactory(emailDeliverer)
 				.create(clientConnection, new Command("DATA"))
 				.executeCommand();
 
@@ -38,11 +41,11 @@ public class DataCommandTest {
 	}
 
 	@Test
-	public void shouldReadDataFromClientUntilThereIsInput() throws CommandExecutionException {
+	public void shouldReadDataFromClientUntilThereIsInput() throws Exception {
 		final String newLine = "\n",
 				anyString = "x" + newLine + "" + newLine + "y" + newLine;
 		final StringBuilder receivedData = new StringBuilder();
-		final CommandAction dataCommand = new DataCommandFactory()
+		final CommandAction dataCommand = new DataCommandFactory(emailDeliverer)
 				.create(clientConnection, null);
 
 		when(mailTxMock.dataInProgress()).thenReturn(true);
@@ -56,7 +59,7 @@ public class DataCommandTest {
 
 		dataCommand.executeCommand();
 
-		verify(mailTxMock).userDataFinished();
+		verify(mailTxMock).userDataFinished(emailDeliverer);
 		assertThat(receivedData.toString()).
 				isEqualTo(anyString);
 	}

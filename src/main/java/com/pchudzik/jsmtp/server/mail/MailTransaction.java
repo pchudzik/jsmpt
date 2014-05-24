@@ -1,12 +1,18 @@
 package com.pchudzik.jsmtp.server.mail;
 
 import javax.mail.internet.InternetAddress;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
 
 import com.google.common.base.Preconditions;
+import com.pchudzik.jsmtp.api.EmailDeliverer;
+import com.pchudzik.jsmtp.api.EmailMessage;
+import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Builder;
 
 /**
  * Created by pawel on 16.04.14.
@@ -42,13 +48,25 @@ public class MailTransaction {
 		userInput.sb.append(buffer);
 	}
 
-	public void userDataFinished() {
+	public void userDataFinished(EmailDeliverer deliverer) throws IOException {
 		assertUserInputInProgress();
 		userInput.userInputFinished = true;
+		deliverer.sendEmail(EmailContent.builder()
+				.data(userInput.sb.toString())
+				.from(from)
+				.recipients(recipients)
+				.build());
 	}
 
 	private static class UserInput {
 		boolean userInputFinished = false;
 		StringBuffer sb = new StringBuffer();
+	}
+
+	@Builder @Getter
+	private static class EmailContent implements EmailMessage {
+		private final String data;
+		private final InternetAddress from;
+		private final Collection<InternetAddress> recipients;
 	}
 }

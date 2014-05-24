@@ -7,6 +7,7 @@ import static com.pchudzik.jsmtp.server.command.CommandExecutionException.comman
 import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
 import static com.pchudzik.jsmtp.server.command.CommandResponse.finishedOkResponse;
 
+import com.pchudzik.jsmtp.api.EmailDeliverer;
 import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.command.common.ContextAware;
 import com.pchudzik.jsmtp.server.command.common.ContextConstant;
@@ -18,7 +19,10 @@ import org.apache.commons.io.IOUtils;
 /**
  * Created by pawel on 24.04.14.
  */
-public class DataCommandFactory implements CommandActionFactory {
+@RequiredArgsConstructor
+class DataCommandFactory implements CommandActionFactory {
+	private final EmailDeliverer emailDeliverer;
+
 	@Override
 	public boolean canExecute(Command command) {
 		return command.getCommandString().startsWith("data");
@@ -30,7 +34,7 @@ public class DataCommandFactory implements CommandActionFactory {
 	}
 
 	@RequiredArgsConstructor
-	static class DataCommandAction implements CommandAction, ContextAware {
+	class DataCommandAction implements CommandAction, ContextAware {
 		static final String commandEnd = ".";
 		private final ClientConnection clientConnection;
 
@@ -53,8 +57,15 @@ public class DataCommandFactory implements CommandActionFactory {
 		private CommandResponse readMoreDataFromClient(Reader clientReader, MailTransaction mailTx) throws CommandExecutionException {
 			final boolean isFinished = readDataFromClient(clientReader, mailTx);
 			if (isFinished) {
-				mailTx.userDataFinished();
-				return finishedOkResponse();
+				try {
+					mailTx.userDataFinished(emailDeliverer);
+					return finishedOkResponse();
+				} catch (IOException ex) {
+					throw CommandExecutionException.criticalCommandExecutionException(SmtpResponse.SERVICE_UNAVAILABLE)
+							.responseMessage(ex.getMessage())
+							.cause(ex)
+							.build();
+				}
 			}
 
 			return commandResponse()

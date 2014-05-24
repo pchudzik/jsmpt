@@ -1,5 +1,6 @@
 package com.pchudzik.jsmtp.server;
 
+import com.pchudzik.jsmtp.api.EmailDeliverer;
 import com.pchudzik.jsmtp.common.RandomProvider;
 import com.pchudzik.jsmtp.common.StoppableThread;
 import com.pchudzik.jsmtp.common.TimeProvider;
@@ -22,6 +23,7 @@ public class Server {
 
 	private final ServerConfiguration serverConfiguration;
 	private final boolean withShutdownHook;
+	private final EmailDeliverer emailDeliverer;
 
 	public void start() {
 		serverInstance.initialize();
@@ -46,7 +48,7 @@ public class Server {
 					serverConfiguration,
 					randomProvider,
 					new ClientConnectionFactory(timeProvider, connectionsRegistry),
-					new SmtpClientHandler(new CommandRegistry(serverConfiguration)));
+					new SmtpClientHandler(new CommandRegistry(serverConfiguration, emailDeliverer)));
 			server = new ConnectionsAcceptingServer(serverConfiguration.getListenAddress(), serverConfiguration.getPort(), connectionPool);
 
 			connectionsRegistryThread = new StoppableThread(connectionsRegistry, "connection registry");
