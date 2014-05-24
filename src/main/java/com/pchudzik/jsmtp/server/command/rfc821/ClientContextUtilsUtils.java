@@ -1,10 +1,10 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
+import java.util.Optional;
+
 import com.pchudzik.jsmtp.server.command.CommandAction;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-
-import java.util.Optional;
 
 /**
  * Created by pawel on 23.04.14.

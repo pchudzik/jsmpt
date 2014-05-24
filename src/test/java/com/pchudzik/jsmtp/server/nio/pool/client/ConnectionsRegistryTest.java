@@ -1,17 +1,15 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
-import com.pchudzik.jsmtp.common.FakeTimeProvider;
-import com.pchudzik.jsmtp.server.ServerConfiguration;
-import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-import com.pchudzik.jsmtp.server.nio.pool.client.ConnectionsRegistry;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+
+import com.pchudzik.jsmtp.common.FakeTimeProvider;
+import com.pchudzik.jsmtp.server.ServerConfiguration;
+import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  * Created by pawel on 11.04.14.

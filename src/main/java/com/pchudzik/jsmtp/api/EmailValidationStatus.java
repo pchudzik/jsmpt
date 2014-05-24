@@ -1,10 +1,10 @@
 package com.pchudzik.jsmtp.api;
 
+import java.net.InetAddress;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.net.InetAddress;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class EmailValidationStatus {

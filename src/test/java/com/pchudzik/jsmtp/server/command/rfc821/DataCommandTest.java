@@ -3,18 +3,18 @@ package com.pchudzik.jsmtp.server.command.rfc821;
 import java.io.BufferedReader;
 import java.io.StringReader;
 
+import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newTransactionForClient;
+import static com.pchudzik.jsmtp.server.command.rfc821.DataCommandFactory.DataCommandAction.commandEnd;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+
 import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.ClientRejectedException;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newTransactionForClient;
-import static com.pchudzik.jsmtp.server.command.rfc821.DataCommandFactory.DataCommandAction.commandEnd;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 
 public class DataCommandTest {
 	protected ClientConnection clientConnection;

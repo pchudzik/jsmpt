@@ -1,8 +1,8 @@
 package com.pchudzik.jsmtp.server;
 
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-
 import java.io.IOException;
+
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 /**
  * User: pawel

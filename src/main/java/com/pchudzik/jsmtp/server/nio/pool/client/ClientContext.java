@@ -1,10 +1,10 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
+import java.util.*;
+
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import java.util.*;
 
 /**
  * Created by pawel on 16.04.14.

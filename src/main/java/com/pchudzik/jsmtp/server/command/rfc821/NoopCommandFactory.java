@@ -1,6 +1,9 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
-import com.pchudzik.jsmtp.server.command.*;
+import com.pchudzik.jsmtp.server.command.Command;
+import com.pchudzik.jsmtp.server.command.CommandAction;
+import com.pchudzik.jsmtp.server.command.CommandActionFactory;
+import com.pchudzik.jsmtp.server.command.CommandResponse;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 /**

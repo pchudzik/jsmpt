@@ -1,9 +1,9 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Created by pawel on 17.04.14.

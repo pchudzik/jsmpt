@@ -1,12 +1,12 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
-import com.pchudzik.jsmtp.common.FakeTimeProvider;
-
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.pchudzik.jsmtp.common.FakeTimeProvider;
 
 /**
  * User: pawel

@@ -1,12 +1,12 @@
 package com.pchudzik.jsmtp.server.mail;
 
-import com.google.common.base.Preconditions;
-import lombok.Setter;
-
 import javax.mail.internet.InternetAddress;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
+
+import com.google.common.base.Preconditions;
+import lombok.Setter;
 
 /**
  * Created by pawel on 16.04.14.

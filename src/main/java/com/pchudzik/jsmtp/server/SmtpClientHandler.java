@@ -1,20 +1,20 @@
 package com.pchudzik.jsmtp.server;
 
+import java.io.IOException;
+import java.util.Optional;
+
+import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
+
 import com.pchudzik.jsmtp.server.command.CommandAction;
 import com.pchudzik.jsmtp.server.command.CommandExecutionException;
 import com.pchudzik.jsmtp.server.command.CommandResponse;
 import com.pchudzik.jsmtp.server.command.CommandResponse.ClientAction;
 import com.pchudzik.jsmtp.server.command.SmtpResponse;
-import com.pchudzik.jsmtp.server.command.rfc821.Rfc821CommandRegistry;
 import com.pchudzik.jsmtp.server.command.rfc821.ContextConstant;
+import com.pchudzik.jsmtp.server.command.rfc821.Rfc821CommandRegistry;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
-import java.util.Optional;
-
-import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
 
 /**
  * Created by pawel on 27.04.14.

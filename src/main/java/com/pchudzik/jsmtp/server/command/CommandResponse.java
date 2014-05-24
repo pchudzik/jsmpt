@@ -1,12 +1,11 @@
 package com.pchudzik.jsmtp.server.command;
 
+import java.io.IOException;
+import java.util.Optional;
+
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-
-import java.io.IOException;
-import java.security.cert.CRL;
-import java.util.Optional;
 
 /**
  * Created by pawel on 22.04.14.

@@ -1,9 +1,9 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
-import com.pchudzik.jsmtp.server.command.Command;
-
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+
+import com.pchudzik.jsmtp.server.command.Command;
 
 /**
  * Created by pawel on 23.04.14.

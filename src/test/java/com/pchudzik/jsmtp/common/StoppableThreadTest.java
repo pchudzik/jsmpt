@@ -1,8 +1,8 @@
 package com.pchudzik.jsmtp.common;
 
-import org.testng.annotations.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.testng.annotations.Test;
 
 /**
  * Created by pawel on 11.04.14.

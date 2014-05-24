@@ -1,12 +1,12 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
-import com.pchudzik.jsmtp.server.mail.MailTransaction;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientContext;
-
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
+
+import com.pchudzik.jsmtp.server.mail.MailTransaction;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientContext;
 
 /**
  * Created by pawel on 15.04.14.
