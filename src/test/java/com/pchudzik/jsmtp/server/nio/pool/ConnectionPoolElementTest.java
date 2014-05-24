@@ -23,9 +23,12 @@ import com.pchudzik.jsmtp.common.FakeTimeProvider;
 import com.pchudzik.jsmtp.common.RunnableTask;
 import com.pchudzik.jsmtp.common.StoppableThread;
 import com.pchudzik.jsmtp.server.ClientHandler;
+import com.pchudzik.jsmtp.server.ServerConfiguration;
+import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
 import com.pchudzik.jsmtp.server.nio.ConnectionsAcceptingServer;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
+import com.pchudzik.jsmtp.server.nio.pool.client.ConnectionsRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.testng.annotations.AfterMethod;
@@ -41,6 +44,11 @@ import org.testng.annotations.Test;
 public class ConnectionPoolElementTest {
 	private static final Duration THREE_SECONDS = new Duration(3, TimeUnit.SECONDS);
 	private final LinkedList<StoppableThread> createdThreads = Lists.newLinkedList();
+
+	private final ServerConfiguration serverConfiguration = ServerConfiguration.builder()
+			.listenAddress("any address")
+			.connectionPoolConfiguration(ConnectionPoolConfiguration.defaults)
+			.build();
 
 	private ClientConnectionFactory clientConnectionFactory;
 	private ClientConnectionFactory connectionFactory;
@@ -81,7 +89,7 @@ public class ConnectionPoolElementTest {
 		final String anyString = "ala ma kota";
 		final StringBuilder receivedString = new StringBuilder();
 
-		final ConnectionPoolElement connectionPoolElement = new ConnectionPoolElement(new ConnectionPoolConfiguration("reading server"), connectionFactory, clientConnection -> {
+		final ConnectionPoolElement connectionPoolElement = new ConnectionPoolElement(serverConfiguration, connectionFactory, clientConnection -> {
 			try (Reader userDataReader = clientConnection.getReader()) {
 				receivedString.append(IOUtils.toString(userDataReader));
 			} catch (Exception ex) {
@@ -132,9 +140,7 @@ public class ConnectionPoolElementTest {
 			}
 		};
 
-		ConnectionPoolElement connectionPoolElement = new ConnectionPoolElement(
-				new ConnectionPoolConfiguration("anyName"),
-				clientConnectionFactory, failingClient);
+		ConnectionPoolElement connectionPoolElement = new ConnectionPoolElement(serverConfiguration, clientConnectionFactory, failingClient);
 
 		final ConnectionsAcceptingServer connectionsAcceptingServer = new ConnectionsAcceptingServer(connectionPoolElement);
 
@@ -187,17 +193,21 @@ public class ConnectionPoolElementTest {
 
 	private ConnectionPoolElement doNothingConnectionPool(ClientHandler clientHandler) throws IOException {
 		return new DoNothingConnectionPoolElement(
-				new ConnectionPoolConfiguration("accept thread")
-						.setNewClientsQueueSize(1)
-						.setNewClientRegisterTimeout(1),
+				ServerConfiguration.builder()
+				.listenAddress(serverConfiguration.getListenAddress())
+				.connectionPoolConfiguration(ConnectionPoolConfiguration.builder()
+						.newClientsQueueSize(1)
+						.newClientRegisterTimeout(1)
+						.build())
+				.build(),
 				clientHandler,
 				clientConnectionFactory
 		);
 	}
 
 	private static class DoNothingConnectionPoolElement extends ConnectionPoolElement {
-		public DoNothingConnectionPoolElement(ConnectionPoolConfiguration connectionPoolConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
-			super(connectionPoolConfiguration, connectionFactory, clientHandler);
+		public DoNothingConnectionPoolElement(ServerConfiguration serverConfiguration, ClientHandler clientHandler, ClientConnectionFactory connectionFactory) throws IOException {
+			super(serverConfiguration, connectionFactory, clientHandler);
 		}
 
 		@Override

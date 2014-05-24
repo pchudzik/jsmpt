@@ -5,7 +5,7 @@ import com.pchudzik.jsmtp.server.command.CommandExecutionException;
 import com.pchudzik.jsmtp.server.command.CommandResponse;
 import com.pchudzik.jsmtp.server.command.CommandResponse.ClientAction;
 import com.pchudzik.jsmtp.server.command.SmtpResponse;
-import com.pchudzik.jsmtp.server.command.rfc821.CommandRegistry;
+import com.pchudzik.jsmtp.server.command.rfc821.Rfc821CommandRegistry;
 import com.pchudzik.jsmtp.server.command.rfc821.ContextConstant;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
@@ -21,9 +21,9 @@ import static com.pchudzik.jsmtp.server.command.CommandResponse.commandResponse;
  */
 @Slf4j
 public class SmtpClientHandler implements ClientHandler {
-	private final CommandRegistry commandRegistry;
+	private final Rfc821CommandRegistry commandRegistry;
 
-	public SmtpClientHandler(CommandRegistry commandRegistry) {
+	public SmtpClientHandler(Rfc821CommandRegistry commandRegistry) {
 		this.commandRegistry = commandRegistry;
 	}
 

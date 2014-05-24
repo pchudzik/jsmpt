@@ -1,17 +1,17 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
-import com.pchudzik.jsmtp.server.command.*;
-import com.pchudzik.jsmtp.server.mail.MailTransaction;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-
 import javax.mail.internet.AddressException;
 
 import static com.pchudzik.jsmtp.server.command.rfc821.ClientContextUtilsUtils.getMailTransaction;
 
+import com.pchudzik.jsmtp.server.command.*;
+import com.pchudzik.jsmtp.server.mail.MailTransaction;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+
 /**
  * Created by pawel on 23.04.14.
  */
-public class RcptToCommandFactory implements CommandActionFactory {
+class RcptToCommandFactory implements CommandActionFactory {
 	@Override
 	public boolean canExecute(Command command) {
 		return command.getCommandString().startsWith("rcpt");

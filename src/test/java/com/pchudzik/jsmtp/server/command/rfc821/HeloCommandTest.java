@@ -3,6 +3,7 @@ package com.pchudzik.jsmtp.server.command.rfc821;
 import static org.mockito.Mockito.mock;
 
 import com.pchudzik.jsmtp.server.ServerConfiguration;
+import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
 import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.command.CommandResponse;
 import com.pchudzik.jsmtp.server.command.CommandResponseAssert;
@@ -16,8 +17,11 @@ import org.testng.annotations.Test;
 public class HeloCommandTest {
 	private final String serverListenAddress = "example.com";
 	private final ClientConnection clientConnection = mock(ClientConnection.class);
-	private final HeloCommandFactory heloCommandFactory = new HeloCommandFactory(new ServerConfiguration()
-			.setListenAddress(serverListenAddress));
+
+	private final HeloCommandFactory heloCommandFactory = new HeloCommandFactory(ServerConfiguration.builder()
+			.listenAddress(serverListenAddress)
+			.connectionPoolConfiguration(ConnectionPoolConfiguration.defaults)
+			.build());
 
 	@Test
 	public void shouldRespondWithHelloMessageWithListenAddress() throws Exception {

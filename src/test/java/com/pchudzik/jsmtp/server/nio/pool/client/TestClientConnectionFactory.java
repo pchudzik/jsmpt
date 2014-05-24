@@ -1,7 +1,6 @@
 package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import com.pchudzik.jsmtp.common.FakeTimeProvider;
-import com.pchudzik.jsmtp.server.nio.pool.ConnectionsRegistry;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;

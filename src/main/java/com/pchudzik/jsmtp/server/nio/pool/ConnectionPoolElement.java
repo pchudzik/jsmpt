@@ -1,14 +1,5 @@
 package com.pchudzik.jsmtp.server.nio.pool;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
-import com.pchudzik.jsmtp.common.RunnableTask;
-import com.pchudzik.jsmtp.server.ClientHandler;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -18,14 +9,23 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
+import com.pchudzik.jsmtp.common.RunnableTask;
+import com.pchudzik.jsmtp.server.ClientHandler;
+import com.pchudzik.jsmtp.server.ServerConfiguration;
+import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * User: pawel
  * Date: 06.04.14
  * Time: 18:10
  */
+@Slf4j
 class ConnectionPoolElement implements RunnableTask, ConnectionPool {
-	private static final Logger log = LoggerFactory.getLogger(ConnectionPoolElement.class);
-
 	private final int selectionOperation;
 	private final ConnectionPoolConfiguration connectionPoolConfiguration;
 
@@ -35,9 +35,9 @@ class ConnectionPoolElement implements RunnableTask, ConnectionPool {
 	private final Selector clientSelector;
 	private final LinkedBlockingQueue<SocketChannel> incomingConnectionsQueue;
 
-	public ConnectionPoolElement(ConnectionPoolConfiguration connectionPoolConfiguration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
+	public ConnectionPoolElement(ServerConfiguration configuration, ClientConnectionFactory connectionFactory, ClientHandler clientHandler) throws IOException {
 		this.selectionOperation = SelectionKey.OP_READ;
-		this.connectionPoolConfiguration = connectionPoolConfiguration;
+		this.connectionPoolConfiguration = configuration.getConnectionPoolConfiguration();
 		this.clientHandler = clientHandler;
 		this.connectionFactory = connectionFactory;
 

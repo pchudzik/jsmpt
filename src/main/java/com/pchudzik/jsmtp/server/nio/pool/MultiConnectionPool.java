@@ -1,10 +1,5 @@
 package com.pchudzik.jsmtp.server.nio.pool;
 
-import com.pchudzik.jsmtp.common.RandomProvider;
-import com.pchudzik.jsmtp.common.StoppableThread;
-import com.pchudzik.jsmtp.server.ClientHandler;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.nio.channels.SocketChannel;
@@ -13,6 +8,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.pchudzik.jsmtp.common.function.FunctionUtils.uncheckSupplier;
+
+import com.pchudzik.jsmtp.common.RandomProvider;
+import com.pchudzik.jsmtp.common.StoppableThread;
+import com.pchudzik.jsmtp.server.ClientHandler;
+import com.pchudzik.jsmtp.server.ServerConfiguration;
+import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
 
 /**
  * Created by pawel on 04.05.14.
@@ -23,9 +25,10 @@ public class MultiConnectionPool implements ConnectionPool {
 	private final List<StoppableThread> connectionProcessingThreads;
 	private final int poolSize;
 
-	public MultiConnectionPool(RandomProvider randomProvider, ConnectionPoolConfiguration poolConfiguration, ClientConnectionFactory clientConnectionFactory, ClientHandler clientHandler) {
+	public MultiConnectionPool(ServerConfiguration configuration, RandomProvider randomProvider, ClientConnectionFactory clientConnectionFactory, ClientHandler clientHandler) {
+		final ConnectionPoolConfiguration poolConfiguration = configuration.getConnectionPoolConfiguration();
 		this.randomProvider = randomProvider;
-		connectionPools = Stream.generate(uncheckSupplier(() -> new ConnectionPoolElement(poolConfiguration, clientConnectionFactory, clientHandler)))
+		connectionPools = Stream.generate(uncheckSupplier(() -> new ConnectionPoolElement(configuration, clientConnectionFactory, clientHandler)))
 				.limit(poolConfiguration.getConnectionPoolsSize())
 				.collect(Collectors.toList());
 		connectionProcessingThreads = connectionPools.stream()

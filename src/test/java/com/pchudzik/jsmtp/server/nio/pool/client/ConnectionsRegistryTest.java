@@ -1,7 +1,10 @@
-package com.pchudzik.jsmtp.server.nio.pool;
+package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import com.pchudzik.jsmtp.common.FakeTimeProvider;
+import com.pchudzik.jsmtp.server.ServerConfiguration;
+import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
+import com.pchudzik.jsmtp.server.nio.pool.client.ConnectionsRegistry;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -23,7 +26,15 @@ public class ConnectionsRegistryTest {
 
 	@BeforeMethod
 	public void setupRegistry() {
-		registry = new ConnectionsRegistry(timeProvider, keepAliveTime, checkTickTimeout);
+		registry = new ConnectionsRegistry(
+				ServerConfiguration.builder()
+						.listenAddress("any listen address")
+						.connectionPoolConfiguration(ConnectionPoolConfiguration.builder()
+								.checkTickTimeout(checkTickTimeout)
+								.maxKeepAliveTime(keepAliveTime)
+								.build())
+						.build(),
+				timeProvider);
 	}
 
 	@Test

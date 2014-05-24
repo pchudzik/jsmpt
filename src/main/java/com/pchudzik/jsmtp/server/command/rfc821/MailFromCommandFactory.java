@@ -1,13 +1,13 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
-import com.pchudzik.jsmtp.server.command.*;
-import com.pchudzik.jsmtp.server.mail.MailTransaction;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-
 import javax.mail.internet.AddressException;
 
 import static com.pchudzik.jsmtp.server.command.CommandExecutionException.commandExecutionException;
 import static com.pchudzik.jsmtp.server.command.rfc821.ClientContextUtilsUtils.getMailTransaction;
+
+import com.pchudzik.jsmtp.server.command.*;
+import com.pchudzik.jsmtp.server.mail.MailTransaction;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
 
 /**
  * Created by pawel on 16.04.14.

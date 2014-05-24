@@ -1,13 +1,4 @@
-package com.pchudzik.jsmtp.server.nio.pool;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
-import com.google.common.collect.Sets;
-import com.pchudzik.jsmtp.common.RunnableTask;
-import com.pchudzik.jsmtp.common.TimeProvider;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.pchudzik.jsmtp.server.nio.pool.client;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -15,6 +6,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.TimeUnit;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Queues;
+import com.google.common.collect.Sets;
+import com.pchudzik.jsmtp.common.RunnableTask;
+import com.pchudzik.jsmtp.common.TimeProvider;
+import com.pchudzik.jsmtp.server.ServerConfiguration;
+import com.pchudzik.jsmtp.server.nio.pool.ClientRejectedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * User: pawel
@@ -31,14 +32,10 @@ public class ConnectionsRegistry implements RunnableTask {
 	private final Set<ClientConnection> activeClients = Sets.newHashSet();
 	private final BlockingDeque<ClientConnection> newClients = Queues.newLinkedBlockingDeque();
 
-	public ConnectionsRegistry(TimeProvider timeProvider) {
-		this(timeProvider, TimeUnit.SECONDS.toMillis(180), 100);
-	}
-
-	public ConnectionsRegistry(TimeProvider timeProvider, long maxKeepAliveTime, long checkTickTimeout) {
+	public ConnectionsRegistry(ServerConfiguration serverConfiguration, TimeProvider timeProvider) {
 		this.timeProvider = timeProvider;
-		this.maxKeepAliveTime = maxKeepAliveTime;
-		this.checkTickTimeout = checkTickTimeout;
+		this.maxKeepAliveTime = serverConfiguration.getConnectionPoolConfiguration().getMaxKeepAliveTime();
+		this.checkTickTimeout = serverConfiguration.getConnectionPoolConfiguration().getCheckTickTimeout();
 	}
 
 	public void addNewClient(ClientConnection clientConnection) throws ClientRejectedException {
