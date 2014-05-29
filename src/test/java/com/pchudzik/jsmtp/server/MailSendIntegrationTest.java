@@ -7,10 +7,13 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
-import static java.util.Arrays.asList;
+import static com.google.common.collect.Iterables.getOnlyElement;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.pchudzik.jsmtp.api.EmailMessage;
-import com.pchudzik.jsmtp.api.EmailMessageAssert;
+import com.pchudzik.jsmtp.common.function.ObjectAssert;
+import com.pchudzik.jsmtp.common.function.ObjectAssert.ValueProvider;
 import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
 import lombok.SneakyThrows;
 import org.testng.annotations.AfterClass;
@@ -67,9 +70,11 @@ public class MailSendIntegrationTest {
 
 		Transport.send(msg);
 
-		EmailMessageAssert.assertThat(latestMessage)
-				.fromAddress(new InternetAddress(fromAddress))
-				.receipients(asList(new InternetAddress(toAddress)))
-				.dataContains(data);
+		ObjectAssert.assertThat(latestMessage)
+				.isEqual(EmailMessage::getFrom, new InternetAddress(fromAddress))
+				.contains(EmailMessage::getData, data)
+				.isEqual(
+						m -> getOnlyElement(m.getRecipients()),
+						new InternetAddress(toAddress));
 	}
 }

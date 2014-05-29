@@ -5,6 +5,7 @@ import static com.googlecode.catchexception.CatchException.caughtException;
 import static com.pchudzik.jsmtp.server.command.rfc821.CommandUtils.newTransactionForClient;
 import static org.mockito.Mockito.mock;
 
+import com.pchudzik.jsmtp.common.function.ObjectAssert;
 import com.pchudzik.jsmtp.server.command.*;
 import com.pchudzik.jsmtp.server.mail.MailTransaction;
 import com.pchudzik.jsmtp.server.nio.pool.ClientRejectedException;
@@ -36,9 +37,9 @@ abstract class AddressExtractingCommandTest {
 	public void emailRejectionTest(CommandActionFactory actionFactory, Command command, SmtpResponse expectedResponse, String expectedMessage) throws CommandExecutionException {
 		catchException(actionFactory.create(clientConnection, command)).executeCommand();
 
-		CommandExecutionExceptionAssert.assertThat(caughtException())
-				.isNotCritical()
-				.hasSmtpResponse(expectedResponse)
-				.hasMessage(expectedMessage);
+		ObjectAssert.assertThat((CommandExecutionException)caughtException())
+				.is(CommandExecutionException::isCritical, false)
+				.isEqual(CommandExecutionException::getSmtpResponse, expectedResponse)
+				.isEqual(CommandExecutionException::getMessage, expectedMessage);
 	}
 }
