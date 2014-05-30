@@ -1,15 +1,15 @@
 package com.pchudzik.jsmtp.server.command.rfc821;
 
-import javax.mail.internet.InternetAddress;
-
-import static org.mockito.Mockito.verify;
-
 import com.pchudzik.jsmtp.server.command.Command;
 import com.pchudzik.jsmtp.server.command.CommandResponse;
 import com.pchudzik.jsmtp.server.command.CommandResponseAssert;
 import com.pchudzik.jsmtp.server.command.SmtpResponse;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import javax.mail.internet.InternetAddress;
+
+import static org.mockito.Mockito.verify;
 
 /**
  * User: pawel

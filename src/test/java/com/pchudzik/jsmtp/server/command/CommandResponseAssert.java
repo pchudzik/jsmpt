@@ -1,5 +1,6 @@
 package com.pchudzik.jsmtp.server.command;
 
+import com.pchudzik.jsmtp.common.function.ObjectAssert;
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
@@ -19,8 +20,8 @@ public class CommandResponseAssert extends AbstractAssert<CommandResponseAssert,
 	public CommandResponseAssert hasSmtpResponse(SmtpResponse smtpResponse) {
 		isNotNull();
 
-		SmtpResponseAssert.assertThat(actual.smtpResponse)
-				.hasSmtpResponse(smtpResponse);
+		ObjectAssert.assertThat(actual)
+				.isEqual(a -> a.smtpResponse, smtpResponse);
 
 		return this;
 	}
