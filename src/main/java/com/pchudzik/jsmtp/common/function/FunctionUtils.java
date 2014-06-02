@@ -17,7 +17,7 @@ public class FunctionUtils {
 		};
 	}
 
-	public static <T> Supplier<T> uncheckSupplier(UncheckedSupplier<T> supplier) {
+	public static <T> Supplier<T> uncheckedSupplier(UncheckedSupplier<T> supplier) {
 		return () -> {
 			try {
 				return supplier.get();

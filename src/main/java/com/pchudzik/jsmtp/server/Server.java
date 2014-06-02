@@ -5,11 +5,16 @@ import com.pchudzik.jsmtp.common.RandomProvider;
 import com.pchudzik.jsmtp.common.StoppableThread;
 import com.pchudzik.jsmtp.common.TimeProvider;
 import com.pchudzik.jsmtp.server.command.CommandRegistry;
+import com.pchudzik.jsmtp.server.command.FallbackCommandsProvider;
+import com.pchudzik.jsmtp.server.command.rfc2821.Rfc2821Configuration;
+import com.pchudzik.jsmtp.server.command.rfc821.Rfc821Configuration;
 import com.pchudzik.jsmtp.server.nio.ConnectionsAcceptingServer;
 import com.pchudzik.jsmtp.server.nio.pool.MultiConnectionPool;
 import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
 import com.pchudzik.jsmtp.server.nio.pool.client.ConnectionsRegistry;
 import lombok.experimental.Builder;
+
+import static java.util.Arrays.asList;
 
 /**
  * Created by pawel on 24.05.14.
@@ -43,12 +48,20 @@ public class Server {
 		private MultiConnectionPool connectionPool;
 
 		void initialize() {
+			final Rfc821Configuration rfc821 = new Rfc821Configuration(serverConfiguration, emailDeliverer);
+			final Rfc2821Configuration rfc2821 = new Rfc2821Configuration(serverConfiguration);
+			final FallbackCommandsProvider fallbackCommandsProvider = new FallbackCommandsProvider();
+
 			connectionsRegistry = new ConnectionsRegistry(serverConfiguration, timeProvider);
+
 			connectionPool = new MultiConnectionPool(
 					serverConfiguration,
 					randomProvider,
 					new ClientConnectionFactory(timeProvider, connectionsRegistry),
-					new SmtpClientHandler(new CommandRegistry(serverConfiguration, emailDeliverer)));
+					new SmtpClientHandler(new CommandRegistry(asList(
+							rfc821,
+							rfc2821,
+							fallbackCommandsProvider))));
 			server = new ConnectionsAcceptingServer(serverConfiguration.getListenAddress(), serverConfiguration.getPort(), connectionPool);
 
 			connectionsRegistryThread = new StoppableThread(connectionsRegistry, "connection registry");

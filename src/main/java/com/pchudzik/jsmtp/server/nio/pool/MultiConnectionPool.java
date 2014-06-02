@@ -1,5 +1,12 @@
 package com.pchudzik.jsmtp.server.nio.pool;
 
+import com.pchudzik.jsmtp.common.RandomProvider;
+import com.pchudzik.jsmtp.common.StoppableThread;
+import com.pchudzik.jsmtp.server.ClientHandler;
+import com.pchudzik.jsmtp.server.ServerConfiguration;
+import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
+import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.nio.channels.SocketChannel;
@@ -7,14 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.pchudzik.jsmtp.common.function.FunctionUtils.uncheckSupplier;
-
-import com.pchudzik.jsmtp.common.RandomProvider;
-import com.pchudzik.jsmtp.common.StoppableThread;
-import com.pchudzik.jsmtp.server.ClientHandler;
-import com.pchudzik.jsmtp.server.ServerConfiguration;
-import com.pchudzik.jsmtp.server.ServerConfiguration.ConnectionPoolConfiguration;
-import com.pchudzik.jsmtp.server.nio.pool.client.ClientConnectionFactory;
+import static com.pchudzik.jsmtp.common.function.FunctionUtils.uncheckedSupplier;
 
 /**
  * Created by pawel on 04.05.14.
@@ -28,7 +28,7 @@ public class MultiConnectionPool implements ConnectionPool {
 	public MultiConnectionPool(ServerConfiguration configuration, RandomProvider randomProvider, ClientConnectionFactory clientConnectionFactory, ClientHandler clientHandler) {
 		final ConnectionPoolConfiguration poolConfiguration = configuration.getConnectionPoolConfiguration();
 		this.randomProvider = randomProvider;
-		connectionPools = Stream.generate(uncheckSupplier(() -> new ConnectionPoolElement(configuration, clientConnectionFactory, clientHandler)))
+		connectionPools = Stream.generate(uncheckedSupplier(() -> new ConnectionPoolElement(configuration, clientConnectionFactory, clientHandler)))
 				.limit(poolConfiguration.getConnectionPoolsSize())
 				.collect(Collectors.toList());
 		connectionProcessingThreads = connectionPools.stream()
